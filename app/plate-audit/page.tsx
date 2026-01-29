@@ -43,7 +43,7 @@ export default function PlateAuditPage() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to analyze plate");
+        throw new Error("Falha ao analisar prato");
       }
 
       const data = await response.json();
@@ -59,11 +59,11 @@ export default function PlateAuditPage() {
 
       toast.success(
         result.compliant
-          ? "Plate is compliant!"
-          : "Plate is non-compliant. Check missing items."
+          ? "Prato em conformidade!"
+          : "Prato nao conforme. Verifique itens faltando."
       );
     } catch {
-      toast.error("Failed to analyze plate. Please try again.");
+      toast.error("Falha ao analisar prato. Tente novamente.");
     } finally {
       setIsAnalyzing(false);
     }
@@ -76,8 +76,8 @@ export default function PlateAuditPage() {
       </div>
       <main className="flex-1 md:ml-64">
         <Header
-          title="Plate Assembly Audit"
-          description="Verify sandwich plate contains required ingredients"
+          title="Auditoria de Montagem de Pratos"
+          description="Verificar se o prato de sanduiche contem os ingredientes necessarios"
         />
         <div className="p-4 md:p-6">
           <div className="grid gap-6 lg:grid-cols-[1fr_400px]">
@@ -85,7 +85,7 @@ export default function PlateAuditPage() {
             <div className="space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Capture Plate</CardTitle>
+                  <CardTitle className="text-base">Capturar Prato</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <CameraCapture
@@ -97,7 +97,7 @@ export default function PlateAuditPage() {
                   />
                   {capturedImage && !isAnalyzing && !currentResult && (
                     <Button onClick={handleAnalyze} className="w-full">
-                      Analyze Plate
+                      Analisar Prato
                     </Button>
                   )}
                 </CardContent>
@@ -108,19 +108,19 @@ export default function PlateAuditPage() {
                 <Card>
                   <CardHeader>
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-base">Analysis Result</CardTitle>
+                      <CardTitle className="text-base">Resultado da Analise</CardTitle>
                       <ComplianceBadge compliant={currentResult.compliant} />
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-3 gap-3">
-                      <ResultBadge value={currentResult.bread} label="Bread" />
-                      <ResultBadge value={currentResult.meat} label="Meat" />
-                      <ResultBadge value={currentResult.cheese} label="Cheese" />
+                      <ResultBadge value={currentResult.bread} label="Pao" />
+                      <ResultBadge value={currentResult.meat} label="Carne" />
+                      <ResultBadge value={currentResult.cheese} label="Queijo" />
                     </div>
                     <div className="rounded-lg bg-muted p-4">
                       <p className="text-sm font-medium text-muted-foreground">
-                        Notes
+                        Observacoes
                       </p>
                       <p className="mt-1 text-sm">{currentResult.notes}</p>
                     </div>
@@ -129,7 +129,7 @@ export default function PlateAuditPage() {
                       variant="outline"
                       className="w-full bg-transparent"
                     >
-                      New Audit
+                      Nova Auditoria
                     </Button>
                   </CardContent>
                 </Card>
@@ -139,13 +139,13 @@ export default function PlateAuditPage() {
             {/* History Sidebar */}
             <div className="space-y-4">
               <h2 className="text-sm font-semibold text-muted-foreground">
-                Recent Audits
+                Auditorias Recentes
               </h2>
               {plateAudits.length === 0 ? (
                 <Card>
                   <CardContent className="flex flex-col items-center justify-center py-8 text-center">
                     <p className="text-sm text-muted-foreground">
-                      No audits yet. Capture a plate to begin.
+                      Nenhuma auditoria ainda. Capture um prato para comecar.
                     </p>
                   </CardContent>
                 </Card>
@@ -155,7 +155,7 @@ export default function PlateAuditPage() {
                     {plateAudits.map((audit) => (
                       <HistoryCard
                         key={audit.id}
-                        title="Plate Audit"
+                        title="Auditoria de Prato"
                         timestamp={audit.timestamp}
                         imageData={audit.imageData}
                         compliant={audit.compliant}

@@ -40,7 +40,7 @@ export function HistoryCard({
               variant={compliant ? "default" : "destructive"}
               className={compliant ? "bg-success text-success-foreground" : ""}
             >
-              {compliant ? "Pass" : "Fail"}
+              {compliant ? "Aprovado" : "Reprovado"}
             </Badge>
           )}
           {score !== undefined && (

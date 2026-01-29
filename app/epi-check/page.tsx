@@ -43,7 +43,7 @@ export default function EPICheckPage() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to analyze EPI");
+        throw new Error("Falha ao analisar EPI");
       }
 
       const data = await response.json();
@@ -59,11 +59,11 @@ export default function EPICheckPage() {
 
       toast.success(
         result.compliant
-          ? "Operator is compliant with EPI requirements!"
-          : "Operator is non-compliant. Review missing items."
+          ? "Operador em conformidade com requisitos de EPI!"
+          : "Operador nao conforme. Revise itens faltando."
       );
     } catch {
-      toast.error("Failed to analyze EPI compliance. Please try again.");
+      toast.error("Falha ao analisar conformidade de EPI. Tente novamente.");
     } finally {
       setIsAnalyzing(false);
     }
@@ -76,8 +76,8 @@ export default function EPICheckPage() {
       </div>
       <main className="flex-1 md:ml-64">
         <Header
-          title="EPI Compliance Check"
-          description="Verify operator hygiene equipment"
+          title="Verificacao de Conformidade de EPI"
+          description="Verificar equipamentos de higiene do operador"
         />
         <div className="p-4 md:p-6">
           <div className="grid gap-6 lg:grid-cols-[1fr_400px]">
@@ -85,7 +85,7 @@ export default function EPICheckPage() {
             <div className="space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Capture Operator</CardTitle>
+                  <CardTitle className="text-base">Capturar Operador</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <CameraCapture
@@ -97,7 +97,7 @@ export default function EPICheckPage() {
                   />
                   {capturedImage && !isAnalyzing && !currentResult && (
                     <Button onClick={handleAnalyze} className="w-full">
-                      Check Operator
+                      Verificar Operador
                     </Button>
                   )}
                 </CardContent>
@@ -108,22 +108,22 @@ export default function EPICheckPage() {
                 <Card>
                   <CardHeader>
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-base">Compliance Result</CardTitle>
+                      <CardTitle className="text-base">Resultado da Conformidade</CardTitle>
                       <ComplianceBadge compliant={currentResult.compliant} />
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="space-y-3">
-                      <h4 className="text-sm font-medium">Required Equipment</h4>
+                      <h4 className="text-sm font-medium">Equipamentos Obrigatorios</h4>
                       <div className="grid gap-3">
-                        <ResultBadge value={currentResult.hairnet} label="Hairnet" />
-                        <ResultBadge value={currentResult.gloves} label="Gloves" />
-                        <ResultBadge value={currentResult.apron} label="Apron" />
+                        <ResultBadge value={currentResult.hairnet} label="Touca" />
+                        <ResultBadge value={currentResult.gloves} label="Luvas" />
+                        <ResultBadge value={currentResult.apron} label="Avental" />
                       </div>
                     </div>
                     <div className="rounded-lg bg-muted p-4">
                       <p className="text-sm font-medium text-muted-foreground">
-                        Notes
+                        Observacoes
                       </p>
                       <p className="mt-1 text-sm">{currentResult.notes}</p>
                     </div>
@@ -132,7 +132,7 @@ export default function EPICheckPage() {
                       variant="outline"
                       className="w-full bg-transparent"
                     >
-                      New Check
+                      Nova Verificacao
                     </Button>
                   </CardContent>
                 </Card>
@@ -142,13 +142,13 @@ export default function EPICheckPage() {
             {/* History Sidebar */}
             <div className="space-y-4">
               <h2 className="text-sm font-semibold text-muted-foreground">
-                Recent Checks
+                Verificacoes Recentes
               </h2>
               {epiChecks.length === 0 ? (
                 <Card>
                   <CardContent className="flex flex-col items-center justify-center py-8 text-center">
                     <p className="text-sm text-muted-foreground">
-                      No checks yet. Capture an operator to begin.
+                      Nenhuma verificacao ainda. Capture um operador para comecar.
                     </p>
                   </CardContent>
                 </Card>
@@ -158,7 +158,7 @@ export default function EPICheckPage() {
                     {epiChecks.map((check) => (
                       <HistoryCard
                         key={check.id}
-                        title="EPI Check"
+                        title="Verificacao de EPI"
                         timestamp={check.timestamp}
                         imageData={check.imageData}
                         compliant={check.compliant}

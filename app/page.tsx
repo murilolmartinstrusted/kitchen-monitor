@@ -19,8 +19,6 @@ import {
   Activity,
   TrendingUp,
   AlertTriangle,
-  BarChart3,
-  PieChartIcon,
 } from "lucide-react";
 import {
   BarChart,
@@ -30,12 +28,8 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  PieChart,
-  Pie,
   Cell,
 } from "recharts";
-
-const COLORS = ["hsl(var(--chart-1))", "hsl(var(--chart-2))", "hsl(var(--chart-3))", "hsl(var(--chart-4))"];
 
 export default function DashboardPage() {
   const [mounted, setMounted] = React.useState(false);
@@ -61,60 +55,131 @@ export default function DashboardPage() {
 
   const plateFailures = plateAudits.filter((a) => !a.compliant).length;
 
-  // Chart data
-  const barChartData = [
-    { name: "Plate", total: plateAudits.length, compliant: plateCompliant },
-    { name: "Cleaning", total: cleaningAudits.length, compliant: cleaningAudits.filter(a => a.score >= 70).length },
-    { name: "EPI", total: epiChecks.length, compliant: epiCompliant },
-    { name: "NFS-e", total: nfseResults.length, compliant: nfseResults.length },
+  // Plate Audit - Items missing breakdown
+  const plateItemsData = [
+    { 
+      name: "Pao", 
+      presente: plateAudits.filter(a => a.bread === true).length,
+      ausente: plateAudits.filter(a => a.bread === false).length,
+    },
+    { 
+      name: "Carne", 
+      presente: plateAudits.filter(a => a.meat === true).length,
+      ausente: plateAudits.filter(a => a.meat === false).length,
+    },
+    { 
+      name: "Queijo", 
+      presente: plateAudits.filter(a => a.cheese === true).length,
+      ausente: plateAudits.filter(a => a.cheese === false).length,
+    },
   ];
 
-  const pieChartData = [
-    { name: "Plate Audits", value: plateAudits.length },
-    { name: "Cleaning Audits", value: cleaningAudits.length },
-    { name: "EPI Checks", value: epiChecks.length },
-    { name: "NFS-e Parsed", value: nfseResults.length },
+  // Cleaning Audit - Issues breakdown
+  const cleaningIssuesData = [
+    { 
+      name: "Balcao Sujo", 
+      value: cleaningAudits.filter(a => a.counter_clean === false).length,
+    },
+    { 
+      name: "Lixo Cheio", 
+      value: cleaningAudits.filter(a => a.trash_full === true).length,
+    },
+    { 
+      name: "Chao Sujo", 
+      value: cleaningAudits.filter(a => a.floor_dirty === true).length,
+    },
   ].filter(d => d.value > 0);
+
+  // EPI Check - Equipment missing breakdown  
+  const epiEquipmentData = [
+    { 
+      name: "Touca", 
+      conforme: epiChecks.filter(c => c.hairnet === true).length,
+      faltando: epiChecks.filter(c => c.hairnet === false).length,
+    },
+    { 
+      name: "Luvas", 
+      conforme: epiChecks.filter(c => c.gloves === true).length,
+      faltando: epiChecks.filter(c => c.gloves === false).length,
+    },
+    { 
+      name: "Avental", 
+      conforme: epiChecks.filter(c => c.apron === true).length,
+      faltando: epiChecks.filter(c => c.apron === false).length,
+    },
+  ];
+
+  // NFS-e - Financial summary
+  const totalNfseValue = nfseResults.reduce((sum, r) => sum + r.total_value, 0);
+  const totalTaxValue = nfseResults.reduce((sum, r) => sum + r.tax_value, 0);
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    }).format(value);
+  };
+
+  // Score distribution for cleaning audits
+  const scoreRanges = [
+    { range: "0-40", count: cleaningAudits.filter(a => a.score < 40).length, fill: "hsl(var(--destructive))" },
+    { range: "40-70", count: cleaningAudits.filter(a => a.score >= 40 && a.score < 70).length, fill: "hsl(var(--warning))" },
+    { range: "70-100", count: cleaningAudits.filter(a => a.score >= 70).length, fill: "hsl(var(--success))" },
+  ];
 
   const recentActivity = [
     ...plateAudits.slice(0, 5).map((a) => ({
       type: "plate" as const,
       timestamp: a.timestamp,
       compliant: a.compliant,
-      title: "Plate Audit",
-      summary: a.compliant ? "All items present" : "Missing items detected",
+      title: "Auditoria de Prato",
+      summary: a.compliant ? "Todos os itens presentes" : "Itens faltando detectados",
     })),
     ...cleaningAudits.slice(0, 5).map((a) => ({
       type: "cleaning" as const,
       timestamp: a.timestamp,
       score: a.score,
-      title: "Cleaning Audit",
-      summary: `Score: ${a.score}/100`,
+      title: "Auditoria de Limpeza",
+      summary: `Pontuacao: ${a.score}/100`,
     })),
     ...epiChecks.slice(0, 5).map((c) => ({
       type: "epi" as const,
       timestamp: c.timestamp,
       compliant: c.compliant,
-      title: "EPI Check",
-      summary: c.compliant ? "Fully compliant" : "Equipment missing",
+      title: "Verificacao de EPI",
+      summary: c.compliant ? "Totalmente em conformidade" : "Equipamento faltando",
     })),
     ...nfseResults.slice(0, 5).map((r) => ({
       type: "nfse" as const,
       timestamp: r.timestamp,
       filename: r.filename,
-      title: "NFS-e Parsed",
+      title: "NFS-e Processada",
       summary: r.filename,
     })),
   ]
     .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
     .slice(0, 10);
 
+  const barChartData = [
+    { name: "Auditorias de Pratos", total: plateAudits.length, compliant: plateCompliant },
+    { name: "Auditorias de Limpeza", total: cleaningAudits.length, compliant: cleaningAudits.filter(a => a.compliant).length },
+    { name: "Verificacoes de EPI", total: epiChecks.length, compliant: epiCompliant },
+    { name: "NFS-e", total: nfseResults.length, compliant: nfseResults.length }, // Assuming all NFS-e results are compliant for simplicity
+  ];
+
+  const pieChartData = [
+    { name: "Auditorias de Pratos", value: plateAudits.length },
+    { name: "Auditorias de Limpeza", value: cleaningAudits.length },
+    { name: "Verificacoes de EPI", value: epiChecks.length },
+    { name: "NFS-e", value: nfseResults.length },
+  ];
+
   if (!mounted) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-          <p className="text-sm text-muted-foreground">Loading...</p>
+          <p className="text-sm text-muted-foreground">Carregando...</p>
         </div>
       </div>
     );
@@ -127,8 +192,8 @@ export default function DashboardPage() {
       </div>
       <main className="flex-1 md:ml-64">
         <Header
-          title="Dashboard"
-          description="AI-powered operational intelligence overview"
+          title="Painel"
+          description="Visao geral de inteligencia operacional com IA"
         />
         <div className="p-4 md:p-6 space-y-6">
           {/* Key Metrics */}
@@ -137,7 +202,7 @@ export default function DashboardPage() {
             <Card className="relative overflow-hidden">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Total Analyses
+                  Total de Analises
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -146,7 +211,7 @@ export default function DashboardPage() {
                   <Activity className="h-5 w-5 text-primary" />
                 </div>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  All audit types combined
+                  Todos os tipos de auditoria
                 </p>
               </CardContent>
             </Card>
@@ -155,7 +220,7 @@ export default function DashboardPage() {
             <Card className="relative overflow-hidden">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Compliance Rate
+                  Taxa de Conformidade
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -171,7 +236,7 @@ export default function DashboardPage() {
             <Card className="relative overflow-hidden">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Avg. Cleaning Score
+                  Pontuacao Media Limpeza
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -191,7 +256,7 @@ export default function DashboardPage() {
             <Card className="relative overflow-hidden">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
-                  EPI Compliance
+                  Conformidade EPI
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -202,7 +267,7 @@ export default function DashboardPage() {
                   <HardHat className="h-5 w-5 text-chart-3" />
                 </div>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  {epiCompliant}/{epiChecks.length} checks passed
+                  {epiCompliant}/{epiChecks.length} verificacoes aprovadas
                 </p>
               </CardContent>
             </Card>
@@ -211,7 +276,7 @@ export default function DashboardPage() {
             <Card className="relative overflow-hidden">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Plate Failures
+                  Falhas em Pratos
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -222,48 +287,47 @@ export default function DashboardPage() {
                   {plateFailures > 0 && <AlertTriangle className="h-5 w-5 text-destructive" />}
                 </div>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  {plateAudits.length > 0 ? `${Math.round((plateFailures / plateAudits.length) * 100)}% failure rate` : "No audits yet"}
+                  {plateAudits.length > 0 ? `${Math.round((plateFailures / plateAudits.length) * 100)}% taxa de falha` : "Nenhuma auditoria ainda"}
                 </p>
               </CardContent>
             </Card>
           </div>
 
-          {/* Charts Row */}
+          {/* Module-Specific Charts */}
           <div className="grid gap-6 lg:grid-cols-2">
-            {/* Bar Chart */}
+            {/* Plate Audit - Ingredients Analysis */}
             <Card>
               <CardHeader>
                 <div className="flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5 text-muted-foreground" />
-                  <CardTitle className="text-base">Audit Overview</CardTitle>
+                  <UtensilsCrossed className="h-5 w-5 text-chart-1" />
+                  <CardTitle className="text-base">Auditoria de Pratos - Ingredientes</CardTitle>
                 </div>
-                <CardDescription>Total vs compliant audits by type</CardDescription>
+                <CardDescription>Presenca de ingredientes nas auditorias</CardDescription>
               </CardHeader>
               <CardContent>
-                {totalAnalyses === 0 ? (
+                {plateAudits.length === 0 ? (
                   <div className="flex h-64 items-center justify-center text-muted-foreground">
                     <div className="text-center">
-                      <BarChart3 className="mx-auto h-12 w-12 opacity-50" />
-                      <p className="mt-2">No data yet. Run some audits to see charts.</p>
+                      <UtensilsCrossed className="mx-auto h-12 w-12 opacity-50" />
+                      <p className="mt-2">Sem auditorias de pratos ainda.</p>
                     </div>
                   </div>
                 ) : (
                   <div className="h-64">
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={barChartData}>
+                      <BarChart data={plateItemsData} layout="vertical">
                         <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                        <XAxis dataKey="name" className="text-xs" tick={{ fill: "hsl(var(--muted-foreground))" }} />
-                        <YAxis className="text-xs" tick={{ fill: "hsl(var(--muted-foreground))" }} />
+                        <XAxis type="number" tick={{ fill: "hsl(var(--muted-foreground))" }} />
+                        <YAxis dataKey="name" type="category" tick={{ fill: "hsl(var(--muted-foreground))" }} width={60} />
                         <Tooltip
                           contentStyle={{
                             backgroundColor: "hsl(var(--card))",
                             border: "1px solid hsl(var(--border))",
                             borderRadius: "var(--radius)",
                           }}
-                          labelStyle={{ color: "hsl(var(--foreground))" }}
                         />
-                        <Bar dataKey="total" fill="hsl(var(--muted))" name="Total" radius={[4, 4, 0, 0]} />
-                        <Bar dataKey="compliant" fill="hsl(var(--primary))" name="Compliant" radius={[4, 4, 0, 0]} />
+                        <Bar dataKey="presente" fill="hsl(var(--success))" name="Presente" stackId="a" radius={[0, 4, 4, 0]} />
+                        <Bar dataKey="ausente" fill="hsl(var(--destructive))" name="Ausente" stackId="a" radius={[0, 4, 4, 0]} />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
@@ -271,42 +335,88 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
 
-            {/* Pie Chart */}
+            {/* Cleaning Audit - Issues & Score */}
             <Card>
               <CardHeader>
                 <div className="flex items-center gap-2">
-                  <PieChartIcon className="h-5 w-5 text-muted-foreground" />
-                  <CardTitle className="text-base">Audit Distribution</CardTitle>
+                  <SprayCanIcon className="h-5 w-5 text-chart-2" />
+                  <CardTitle className="text-base">Auditoria de Limpeza - Problemas</CardTitle>
                 </div>
-                <CardDescription>Breakdown by audit type</CardDescription>
+                <CardDescription>Distribuicao de pontuacoes e problemas encontrados</CardDescription>
               </CardHeader>
               <CardContent>
-                {pieChartData.length === 0 ? (
+                {cleaningAudits.length === 0 ? (
                   <div className="flex h-64 items-center justify-center text-muted-foreground">
                     <div className="text-center">
-                      <PieChartIcon className="mx-auto h-12 w-12 opacity-50" />
-                      <p className="mt-2">No data yet. Run some audits to see charts.</p>
+                      <SprayCanIcon className="mx-auto h-12 w-12 opacity-50" />
+                      <p className="mt-2">Sem auditorias de limpeza ainda.</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="h-64 flex flex-col gap-4">
+                    {/* Score Distribution */}
+                    <div className="flex-1">
+                      <p className="text-xs font-medium text-muted-foreground mb-2">Distribuicao de Pontuacao</p>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={scoreRanges}>
+                          <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                          <XAxis dataKey="range" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} />
+                          <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} />
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: "hsl(var(--card))",
+                              border: "1px solid hsl(var(--border))",
+                              borderRadius: "var(--radius)",
+                            }}
+                          />
+                          <Bar dataKey="count" name="Auditorias" radius={[4, 4, 0, 0]}>
+                            {scoreRanges.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={entry.fill} />
+                            ))}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                    {/* Issues Legend */}
+                    {cleaningIssuesData.length > 0 && (
+                      <div className="flex flex-wrap gap-3 text-xs">
+                        {cleaningIssuesData.map((issue, i) => (
+                          <div key={i} className="flex items-center gap-1">
+                            <div className="h-2 w-2 rounded-full bg-destructive" />
+                            <span>{issue.name}: {issue.value}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* EPI Check - Equipment Analysis */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <HardHat className="h-5 w-5 text-chart-3" />
+                  <CardTitle className="text-base">Verificacao de EPI - Equipamentos</CardTitle>
+                </div>
+                <CardDescription>Conformidade por tipo de equipamento</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {epiChecks.length === 0 ? (
+                  <div className="flex h-64 items-center justify-center text-muted-foreground">
+                    <div className="text-center">
+                      <HardHat className="mx-auto h-12 w-12 opacity-50" />
+                      <p className="mt-2">Sem verificacoes de EPI ainda.</p>
                     </div>
                   </div>
                 ) : (
                   <div className="h-64">
                     <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={pieChartData}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={60}
-                          outerRadius={90}
-                          paddingAngle={2}
-                          dataKey="value"
-                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                          labelLine={false}
-                        >
-                          {pieChartData.map((_, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                          ))}
-                        </Pie>
+                      <BarChart data={epiEquipmentData} layout="vertical">
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                        <XAxis type="number" tick={{ fill: "hsl(var(--muted-foreground))" }} />
+                        <YAxis dataKey="name" type="category" tick={{ fill: "hsl(var(--muted-foreground))" }} width={60} />
                         <Tooltip
                           contentStyle={{
                             backgroundColor: "hsl(var(--card))",
@@ -314,8 +424,56 @@ export default function DashboardPage() {
                             borderRadius: "var(--radius)",
                           }}
                         />
-                      </PieChart>
+                        <Bar dataKey="conforme" fill="hsl(var(--success))" name="Conforme" stackId="a" radius={[0, 4, 4, 0]} />
+                        <Bar dataKey="faltando" fill="hsl(var(--destructive))" name="Faltando" stackId="a" radius={[0, 4, 4, 0]} />
+                      </BarChart>
                     </ResponsiveContainer>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* NFS-e - Financial Summary */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-chart-4" />
+                  <CardTitle className="text-base">Leitor NFS-e - Resumo Financeiro</CardTitle>
+                </div>
+                <CardDescription>Total de notas processadas e valores</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {nfseResults.length === 0 ? (
+                  <div className="flex h-64 items-center justify-center text-muted-foreground">
+                    <div className="text-center">
+                      <FileText className="mx-auto h-12 w-12 opacity-50" />
+                      <p className="mt-2">Sem notas fiscais processadas ainda.</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="h-64 flex flex-col justify-center gap-6">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="rounded-lg bg-muted p-4 text-center">
+                        <p className="text-xs text-muted-foreground">Notas Processadas</p>
+                        <p className="text-2xl font-bold text-chart-4">{nfseResults.length}</p>
+                      </div>
+                      <div className="rounded-lg bg-muted p-4 text-center">
+                        <p className="text-xs text-muted-foreground">Prestadores</p>
+                        <p className="text-2xl font-bold text-chart-4">
+                          {new Set(nfseResults.map(r => r.provider_name)).size}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="rounded-lg bg-primary/10 p-4 text-center">
+                        <p className="text-xs text-muted-foreground">Valor Total</p>
+                        <p className="text-xl font-bold text-primary">{formatCurrency(totalNfseValue)}</p>
+                      </div>
+                      <div className="rounded-lg bg-destructive/10 p-4 text-center">
+                        <p className="text-xs text-muted-foreground">Total ISS</p>
+                        <p className="text-xl font-bold text-destructive">{formatCurrency(totalTaxValue)}</p>
+                      </div>
+                    </div>
                   </div>
                 )}
               </CardContent>
@@ -327,17 +485,17 @@ export default function DashboardPage() {
             {/* Quick Actions */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Quick Actions</CardTitle>
-                <CardDescription>Start a new audit or parse documents</CardDescription>
+                <CardTitle className="text-base">Acoes Rapidas</CardTitle>
+                <CardDescription>Inicie uma nova auditoria ou processe documentos</CardDescription>
               </CardHeader>
               <CardContent className="grid gap-3 sm:grid-cols-2">
                 <Button asChild variant="outline" className="justify-start h-auto py-4 bg-transparent">
                   <Link href="/plate-audit">
                     <UtensilsCrossed className="mr-3 h-5 w-5 text-chart-1" />
                     <div className="text-left">
-                      <p className="font-medium">Plate Audit</p>
+                      <p className="font-medium">Auditoria de Pratos</p>
                       <p className="text-xs text-muted-foreground">
-                        Verify ingredients
+                        Verificar ingredientes
                       </p>
                     </div>
                     <ArrowRight className="ml-auto h-4 w-4" />
@@ -347,9 +505,9 @@ export default function DashboardPage() {
                   <Link href="/cleaning-audit">
                     <SprayCanIcon className="mr-3 h-5 w-5 text-chart-2" />
                     <div className="text-left">
-                      <p className="font-medium">Cleaning Audit</p>
+                      <p className="font-medium">Auditoria de Limpeza</p>
                       <p className="text-xs text-muted-foreground">
-                        Check cleanliness
+                        Verificar limpeza
                       </p>
                     </div>
                     <ArrowRight className="ml-auto h-4 w-4" />
@@ -359,9 +517,9 @@ export default function DashboardPage() {
                   <Link href="/epi-check">
                     <HardHat className="mr-3 h-5 w-5 text-chart-3" />
                     <div className="text-left">
-                      <p className="font-medium">EPI Check</p>
+                      <p className="font-medium">Verificacao de EPI</p>
                       <p className="text-xs text-muted-foreground">
-                        Verify equipment
+                        Verificar equipamentos
                       </p>
                     </div>
                     <ArrowRight className="ml-auto h-4 w-4" />
@@ -371,9 +529,9 @@ export default function DashboardPage() {
                   <Link href="/nfse-reader">
                     <FileText className="mr-3 h-5 w-5 text-chart-4" />
                     <div className="text-left">
-                      <p className="font-medium">NFS-e Reader</p>
+                      <p className="font-medium">Leitor NFS-e</p>
                       <p className="text-xs text-muted-foreground">
-                        Parse invoices
+                        Processar notas fiscais
                       </p>
                     </div>
                     <ArrowRight className="ml-auto h-4 w-4" />
@@ -385,18 +543,18 @@ export default function DashboardPage() {
             {/* Recent Activity */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Recent Activity</CardTitle>
-                <CardDescription>Latest audit results and analyses</CardDescription>
+                <CardTitle className="text-base">Atividade Recente</CardTitle>
+                <CardDescription>Ultimos resultados de auditorias e analises</CardDescription>
               </CardHeader>
               <CardContent>
                 {recentActivity.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-8 text-center">
                     <Activity className="h-10 w-10 text-muted-foreground/40" />
                     <p className="mt-3 text-sm text-muted-foreground">
-                      No activity yet
+                      Nenhuma atividade ainda
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      Start by running an audit from Quick Actions
+                      Comece executando uma auditoria nas Acoes Rapidas
                     </p>
                   </div>
                 ) : (
@@ -447,7 +605,7 @@ export default function DashboardPage() {
                               ) : (
                                 <span className="inline-flex items-center gap-1 text-xs text-destructive">
                                   <XCircle className="h-4 w-4" />
-                                  Issue
+                                  Problema
                                 </span>
                               )}
                             </div>

@@ -18,27 +18,27 @@ import { ThemeToggle } from "./theme-toggle";
 
 const navigation = [
   {
-    name: "Overview",
+    name: "Visao Geral",
     href: "/",
     icon: LayoutDashboard,
   },
   {
-    name: "Plate Audit",
+    name: "Auditoria de Pratos",
     href: "/plate-audit",
     icon: UtensilsCrossed,
   },
   {
-    name: "Cleaning Audit",
+    name: "Auditoria de Limpeza",
     href: "/cleaning-audit",
     icon: SprayCanIcon,
   },
   {
-    name: "EPI Check",
+    name: "Verificacao de EPI",
     href: "/epi-check",
     icon: HardHat,
   },
   {
-    name: "NFS-e Reader",
+    name: "Leitor NFS-e",
     href: "/nfse-reader",
     icon: FileText,
   },
@@ -66,7 +66,7 @@ export function Sidebar() {
             <span className="text-sm font-semibold text-sidebar-foreground">
               Kitchen Monitor
             </span>
-            <span className="text-xs text-muted-foreground">AI Platform</span>
+            <span className="text-xs text-muted-foreground">Plataforma IA</span>
           </div>
         </div>
 
@@ -120,7 +120,7 @@ export function Sidebar() {
               className="text-muted-foreground hover:text-foreground bg-transparent"
             >
               <LogOut className="mr-2 h-4 w-4" />
-              Logout
+              Sair
             </Button>
             <ThemeToggle />
           </div>
