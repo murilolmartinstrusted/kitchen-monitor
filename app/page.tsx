@@ -45,7 +45,103 @@ import {
   Pie,
   RadialBarChart,
   RadialBar,
+  type TooltipProps,
 } from "recharts";
+import type { ValueType, NameType } from "recharts/types/component/DefaultTooltipContent";
+
+// Custom tooltip for plate ingredients chart
+const PlateTooltip = ({ active, payload, label }: TooltipProps<ValueType, NameType>) => {
+  if (active && payload && payload.length) {
+    const presente = payload.find(p => p.dataKey === "Presente")?.value as number || 0;
+    const ausente = payload.find(p => p.dataKey === "Ausente")?.value as number || 0;
+    const total = presente + ausente;
+    const percentPresente = total > 0 ? Math.round((presente / total) * 100) : 0;
+    
+    return (
+      <div className="rounded-lg border bg-card p-3 shadow-lg">
+        <p className="font-semibold text-sm mb-2">{label}</p>
+        <div className="space-y-1 text-xs">
+          <div className="flex items-center justify-between gap-4">
+            <span className="flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full bg-green-500" />
+              Presente
+            </span>
+            <span className="font-medium">{presente} ({percentPresente}%)</span>
+          </div>
+          <div className="flex items-center justify-between gap-4">
+            <span className="flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full bg-red-500" />
+              Ausente
+            </span>
+            <span className="font-medium">{ausente} ({100 - percentPresente}%)</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
+// Custom tooltip for cleaning score chart
+const CleaningTooltip = ({ active, payload, label }: TooltipProps<ValueType, NameType>) => {
+  if (active && payload && payload.length) {
+    const value = payload[0]?.value as number || 0;
+    const descriptions: Record<string, string> = {
+      "Critico": "Pontuacao abaixo de 40 - Requer acao imediata",
+      "Atencao": "Pontuacao entre 40-70 - Precisa melhorar",
+      "Bom": "Pontuacao acima de 70 - Dentro do padrao",
+    };
+    
+    return (
+      <div className="rounded-lg border bg-card p-3 shadow-lg">
+        <p className="font-semibold text-sm mb-1">{label}</p>
+        <p className="text-xs text-muted-foreground mb-2">{descriptions[label as string]}</p>
+        <p className="text-sm font-medium">{value} auditoria{value !== 1 ? 's' : ''}</p>
+      </div>
+    );
+  }
+  return null;
+};
+
+// Custom tooltip for EPI compliance chart
+const EPITooltip = ({ active, payload, label }: TooltipProps<ValueType, NameType>) => {
+  if (active && payload && payload.length) {
+    const conforme = payload.find(p => p.dataKey === "Conforme")?.value as number || 0;
+    const faltando = payload.find(p => p.dataKey === "Faltando")?.value as number || 0;
+    const total = conforme + faltando;
+    const percentConforme = total > 0 ? Math.round((conforme / total) * 100) : 0;
+    
+    const epiDescriptions: Record<string, string> = {
+      "Touca": "Protecao capilar obrigatoria",
+      "Luvas": "Luvas descartaveis para manipulacao",
+      "Avental": "Avental ou jaleco de protecao",
+    };
+    
+    return (
+      <div className="rounded-lg border bg-card p-3 shadow-lg">
+        <p className="font-semibold text-sm">{label}</p>
+        <p className="text-xs text-muted-foreground mb-2">{epiDescriptions[label as string]}</p>
+        <div className="space-y-1 text-xs">
+          <div className="flex items-center justify-between gap-4">
+            <span className="flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full bg-green-500" />
+              Conforme
+            </span>
+            <span className="font-medium">{conforme} ({percentConforme}%)</span>
+          </div>
+          <div className="flex items-center justify-between gap-4">
+            <span className="flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full bg-red-500" />
+              Faltando
+            </span>
+            <span className="font-medium">{faltando} ({100 - percentConforme}%)</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
 
 export default function DashboardPage() {
   const [mounted, setMounted] = React.useState(false);
@@ -372,28 +468,21 @@ export default function DashboardPage() {
                               }}
                               width={45}
                             />
-                            <Tooltip
-                              contentStyle={{
-                                backgroundColor: "hsl(var(--card))",
-                                border: "1px solid hsl(var(--border))",
-                                borderRadius: "8px",
-                                fontSize: "12px",
-                              }}
-                            />
-                            <Legend wrapperStyle={{ fontSize: "10px" }} />
-                            <Bar
-                              dataKey="Presente"
-                              fill="#22c55e"
-                              stackId="a"
-                              radius={[0, 4, 4, 0]}
-                            />
-                            <Bar
-                              dataKey="Ausente"
-                              fill="#ef4444"
-                              stackId="a"
-                              radius={[0, 4, 4, 0]}
-                            />
-                          </BarChart>
+<Tooltip content={<PlateTooltip />} />
+                                            <Legend wrapperStyle={{ fontSize: "10px" }} />
+                                            <Bar
+                                              dataKey="Presente"
+                                              fill="#22c55e"
+                                              stackId="a"
+                                              radius={[0, 4, 4, 0]}
+                                            />
+                                            <Bar
+                                              dataKey="Ausente"
+                                              fill="#ef4444"
+                                              stackId="a"
+                                              radius={[0, 4, 4, 0]}
+                                            />
+                                          </BarChart>
                         </ResponsiveContainer>
                       </div>
                     )}
@@ -438,15 +527,8 @@ export default function DashboardPage() {
                                 fontSize: 10,
                               }}
                             />
-                            <Tooltip
-                              contentStyle={{
-                                backgroundColor: "hsl(var(--card))",
-                                border: "1px solid hsl(var(--border))",
-                                borderRadius: "8px",
-                                fontSize: "12px",
-                              }}
-                            />
-                            <Bar dataKey="quantidade" radius={[4, 4, 0, 0]}>
+<Tooltip content={<CleaningTooltip />} />
+                                            <Bar dataKey="quantidade" radius={[4, 4, 0, 0]}>
                               {scoreRanges.map((entry, index) => (
                                 <Cell key={`cell-${index}`} fill={entry.fill} />
                               ))}
@@ -499,28 +581,21 @@ export default function DashboardPage() {
                               }}
                               width={50}
                             />
-                            <Tooltip
-                              contentStyle={{
-                                backgroundColor: "hsl(var(--card))",
-                                border: "1px solid hsl(var(--border))",
-                                borderRadius: "8px",
-                                fontSize: "12px",
-                              }}
-                            />
-                            <Legend wrapperStyle={{ fontSize: "10px" }} />
-                            <Bar
-                              dataKey="Conforme"
-                              fill="#22c55e"
-                              stackId="a"
-                              radius={[0, 4, 4, 0]}
-                            />
-                            <Bar
-                              dataKey="Faltando"
-                              fill="#ef4444"
-                              stackId="a"
-                              radius={[0, 4, 4, 0]}
-                            />
-                          </BarChart>
+<Tooltip content={<EPITooltip />} />
+                                            <Legend wrapperStyle={{ fontSize: "10px" }} />
+                                            <Bar
+                                              dataKey="Conforme"
+                                              fill="#22c55e"
+                                              stackId="a"
+                                              radius={[0, 4, 4, 0]}
+                                            />
+                                            <Bar
+                                              dataKey="Faltando"
+                                              fill="#ef4444"
+                                              stackId="a"
+                                              radius={[0, 4, 4, 0]}
+                                            />
+                                          </BarChart>
                         </ResponsiveContainer>
                       </div>
                     )}

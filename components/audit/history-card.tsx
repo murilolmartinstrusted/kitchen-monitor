@@ -3,6 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow } from "date-fns";
+import type { DetectedFood } from "@/lib/types";
 
 interface HistoryCardProps {
   title: string;
@@ -11,6 +12,8 @@ interface HistoryCardProps {
   compliant?: boolean;
   score?: number;
   notes?: string;
+  detectedFoods?: DetectedFood[];
+  wellPrepared?: boolean;
 }
 
 export function HistoryCard({
@@ -20,6 +23,8 @@ export function HistoryCard({
   compliant,
   score,
   notes,
+  detectedFoods,
+  wellPrepared,
 }: HistoryCardProps) {
   return (
     <Card className="overflow-hidden">
@@ -59,10 +64,33 @@ export function HistoryCard({
           )}
         </div>
       </CardHeader>
-      <CardContent className="p-4 pt-0">
-        <p className="mb-2 text-xs text-muted-foreground">
+      <CardContent className="p-4 pt-0 space-y-2">
+        <p className="text-xs text-muted-foreground">
           {formatDistanceToNow(new Date(timestamp), { addSuffix: true })}
         </p>
+        {wellPrepared !== undefined && (
+          <Badge
+            variant="outline"
+            className={wellPrepared ? "border-green-500/50 text-green-600" : "border-orange-500/50 text-orange-600"}
+          >
+            {wellPrepared ? "Bem Preparado" : "Precisa Atencao"}
+          </Badge>
+        )}
+        {detectedFoods && detectedFoods.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {detectedFoods.slice(0, 4).map((food, i) => (
+              <span
+                key={i}
+                className={`text-xs px-1.5 py-0.5 rounded ${food.present ? "bg-green-500/10 text-green-600" : "bg-red-500/10 text-red-600"}`}
+              >
+                {food.name}
+              </span>
+            ))}
+            {detectedFoods.length > 4 && (
+              <span className="text-xs text-muted-foreground">+{detectedFoods.length - 4}</span>
+            )}
+          </div>
+        )}
         {notes && (
           <p className="line-clamp-2 text-sm text-muted-foreground">{notes}</p>
         )}

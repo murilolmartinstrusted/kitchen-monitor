@@ -113,14 +113,57 @@ export default function PlateAuditPage() {
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="grid grid-cols-3 gap-3">
-                      <ResultBadge value={currentResult.bread} label="Pao" />
-                      <ResultBadge value={currentResult.meat} label="Carne" />
-                      <ResultBadge value={currentResult.cheese} label="Queijo" />
+                    {/* Well Prepared Status */}
+                    <div className={`rounded-lg p-4 ${currentResult.wellPrepared ? 'bg-green-500/10 border border-green-500/20' : 'bg-red-500/10 border border-red-500/20'}`}>
+                      <div className="flex items-center gap-2">
+                        <span className={`text-sm font-semibold ${currentResult.wellPrepared ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                          {currentResult.wellPrepared ? 'Prato Bem Preparado' : 'Prato Precisa de Atencao'}
+                        </span>
+                      </div>
+                      {currentResult.preparationNotes && (
+                        <p className="mt-2 text-sm text-muted-foreground">{currentResult.preparationNotes}</p>
+                      )}
                     </div>
+
+                    {/* Detected Foods */}
+                    {currentResult.detectedFoods && currentResult.detectedFoods.length > 0 && (
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium text-muted-foreground">Alimentos Identificados</p>
+                        <div className="grid gap-2">
+                          {currentResult.detectedFoods.map((food, index) => (
+                            <div
+                              key={index}
+                              className={`rounded-lg p-3 border ${food.present ? 'bg-green-500/5 border-green-500/20' : 'bg-red-500/5 border-red-500/20'}`}
+                            >
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm font-medium">{food.name}</span>
+                                <span className={`text-xs px-2 py-0.5 rounded-full ${food.present ? 'bg-green-500/20 text-green-600 dark:text-green-400' : 'bg-red-500/20 text-red-600 dark:text-red-400'}`}>
+                                  {food.present ? 'Presente' : 'Ausente'}
+                                </span>
+                              </div>
+                              {food.observation && (
+                                <p className="mt-1 text-xs text-muted-foreground">{food.observation}</p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Required Ingredients */}
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-muted-foreground">Ingredientes Obrigatorios</p>
+                      <div className="grid grid-cols-3 gap-3">
+                        <ResultBadge value={currentResult.bread} label="Pao" />
+                        <ResultBadge value={currentResult.meat} label="Carne" />
+                        <ResultBadge value={currentResult.cheese} label="Queijo" />
+                      </div>
+                    </div>
+
+                    {/* Notes */}
                     <div className="rounded-lg bg-muted p-4">
                       <p className="text-sm font-medium text-muted-foreground">
-                        Observacoes
+                        Resumo da Analise
                       </p>
                       <p className="mt-1 text-sm">{currentResult.notes}</p>
                     </div>
@@ -159,6 +202,8 @@ export default function PlateAuditPage() {
                         timestamp={audit.timestamp}
                         imageData={audit.imageData}
                         compliant={audit.compliant}
+                        detectedFoods={audit.detectedFoods}
+                        wellPrepared={audit.wellPrepared}
                         notes={audit.notes}
                       />
                     ))}

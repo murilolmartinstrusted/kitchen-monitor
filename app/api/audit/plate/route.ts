@@ -2,16 +2,24 @@ import { generateText, Output } from "ai";
 import { z } from "zod";
 import { AI_PROMPTS } from "@/lib/ai-prompts";
 
+const detectedFoodSchema = z.object({
+  name: z.string().describe("Nome do alimento detectado em portugues"),
+  present: z.boolean().describe("Se o alimento esta presente no prato"),
+  observation: z.string().optional().describe("Observacao sobre a aparencia ou qualidade do alimento"),
+});
+
 const plateAuditSchema = z.object({
-  bread: z.boolean().describe("Whether bread is present on the plate"),
-  meat: z.boolean().describe("Whether meat/protein is present on the plate"),
-  cheese: z.boolean().describe("Whether cheese is present on the plate"),
-  compliant: z
-    .boolean()
-    .describe("Whether the plate meets all requirements (has all ingredients)"),
-  notes: z
-    .string()
-    .describe("Brief explanation of the analysis findings"),
+  // Detailed food detection
+  detectedFoods: z.array(detectedFoodSchema).describe("Lista de todos os alimentos identificados no prato"),
+  wellPrepared: z.boolean().describe("Se o prato esta bem preparado (boa apresentacao, porcoes adequadas, cozimento correto)"),
+  preparationNotes: z.string().describe("Observacoes detalhadas sobre a qualidade do preparo do prato"),
+  // Required ingredients check (legacy)
+  bread: z.boolean().describe("Se o prato contem pao"),
+  meat: z.boolean().describe("Se o prato contem carne ou proteina"),
+  cheese: z.boolean().describe("Se o prato contem queijo"),
+  // Overall compliance
+  compliant: z.boolean().describe("Se o prato esta conforme (tem todos ingredientes obrigatorios E esta bem preparado)"),
+  notes: z.string().describe("Resumo geral da analise do prato em portugues"),
 });
 
 export async function POST(req: Request) {

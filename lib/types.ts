@@ -1,11 +1,23 @@
+// Food item detected in the dish
+export interface DetectedFood {
+  name: string;
+  present: boolean;
+  observation?: string;
+}
+
 // Plate Assembly Audit Types
 export interface PlateAuditResult {
   id: string;
   timestamp: string;
   imageData: string;
+  // Legacy fields for backwards compatibility
   bread: boolean;
   meat: boolean;
   cheese: boolean;
+  // New detailed food analysis
+  detectedFoods: DetectedFood[];
+  wellPrepared: boolean;
+  preparationNotes: string;
   compliant: boolean;
   notes: string;
 }
