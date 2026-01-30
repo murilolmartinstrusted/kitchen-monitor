@@ -98,7 +98,7 @@ const EPITooltip = ({ active, payload, label }: TooltipProps<ValueType, NameType
     const epiDescriptions: Record<string, string> = {
       "Touca": "Protecao capilar obrigatoria",
       "Luvas": "Luvas descartaveis para manipulacao",
-      "Avental": "Avental ou jaleco de protecao",
+      "Avental/Uniforme": "Avental, jaleco ou uniforme de cozinha",
     };
     
     return (
@@ -213,7 +213,7 @@ export default function DashboardPage() {
       Faltando: epiChecks.filter((c) => c.gloves === false).length,
     },
     {
-      name: "Avental",
+      name: "Avental/Uniforme",
       Conforme: epiChecks.filter((c) => c.apron === true).length,
       Faltando: epiChecks.filter((c) => c.apron === false).length,
     },

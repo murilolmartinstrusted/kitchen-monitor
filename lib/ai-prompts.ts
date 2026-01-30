@@ -44,7 +44,7 @@ IMPORTANTE: Responda SEMPRE em portugues brasileiro. Todas as observacoes e nota
 Equipamentos obrigatorios a verificar:
 - Touca ou cobertura para cabelo (touca, rede ou similar)
 - Luvas (luvas descartaveis para manipulacao de alimentos)
-- Avental (avental protetor ou jaleco)
+- Avental ou Uniforme (avental protetor, jaleco ou uniforme completo de cozinha)
 
 Para cada item, determine se esta sendo usado corretamente e e visivel. Se voce nao conseguir ver claramente ou determinar se um item esta presente, marque como "incerto".
 
