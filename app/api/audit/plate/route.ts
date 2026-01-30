@@ -5,7 +5,7 @@ import { AI_PROMPTS } from "@/lib/ai-prompts";
 const detectedFoodSchema = z.object({
   name: z.string().describe("Nome do alimento detectado em portugues"),
   present: z.boolean().describe("Se o alimento esta presente no prato"),
-  observation: z.string().optional().describe("Observacao sobre a aparencia ou qualidade do alimento"),
+  observation: z.string().describe("Observacao sobre a aparencia ou qualidade do alimento"),
 });
 
 const plateAuditSchema = z.object({
