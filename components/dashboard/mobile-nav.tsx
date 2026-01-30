@@ -26,27 +26,27 @@ import { ThemeToggle } from "./theme-toggle";
 
 const navigation = [
   {
-    name: "Overview",
+    name: "Visao Geral",
     href: "/",
     icon: LayoutDashboard,
   },
   {
-    name: "Plate Audit",
+    name: "Auditoria de Pratos",
     href: "/plate-audit",
     icon: UtensilsCrossed,
   },
   {
-    name: "Cleaning Audit",
+    name: "Auditoria de Limpeza",
     href: "/cleaning-audit",
     icon: SprayCanIcon,
   },
   {
-    name: "EPI Check",
+    name: "Verificacao de EPI",
     href: "/epi-check",
     icon: HardHat,
   },
   {
-    name: "NFS-e Reader",
+    name: "Leitor NFS-e",
     href: "/nfse-reader",
     icon: FileText,
   },
@@ -69,11 +69,11 @@ export function MobileNav() {
       <SheetTrigger asChild>
         <Button variant="ghost" size="icon" className="md:hidden">
           <Menu className="h-5 w-5" />
-          <span className="sr-only">Toggle menu</span>
+          <span className="sr-only">Alternar menu</span>
         </Button>
       </SheetTrigger>
       <SheetContent side="left" className="w-64 p-0">
-        <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+        <SheetTitle className="sr-only">Menu de Navegacao</SheetTitle>
         <div className="flex h-full flex-col">
           {/* Logo */}
           <div className="flex h-16 items-center gap-2 border-b border-border px-6">
@@ -82,7 +82,7 @@ export function MobileNav() {
             </div>
             <div className="flex flex-col">
               <span className="text-sm font-semibold">Kitchen Monitor</span>
-              <span className="text-xs text-muted-foreground">AI Platform</span>
+              <span className="text-xs text-muted-foreground">Plataforma IA</span>
             </div>
           </div>
 
@@ -135,7 +135,7 @@ export function MobileNav() {
                 className="text-muted-foreground hover:text-foreground bg-transparent"
               >
                 <LogOut className="mr-2 h-4 w-4" />
-                Logout
+                Sair
               </Button>
               <ThemeToggle />
             </div>

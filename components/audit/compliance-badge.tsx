@@ -24,7 +24,7 @@ export function ComplianceBadge({ compliant, size = "lg" }: ComplianceBadgeProps
       ) : (
         <XCircle className={size === "lg" ? "h-5 w-5" : "h-4 w-4"} />
       )}
-      {compliant ? "Compliant" : "Non-Compliant"}
+      {compliant ? "Conforme" : "Nao Conforme"}
     </div>
   );
 }

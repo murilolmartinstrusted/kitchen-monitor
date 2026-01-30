@@ -43,7 +43,7 @@ export default function CleaningAuditPage() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to analyze cleaning");
+        throw new Error("Falha ao analisar limpeza");
       }
 
       const data = await response.json();
@@ -59,11 +59,11 @@ export default function CleaningAuditPage() {
 
       toast.success(
         result.score >= 70
-          ? "Station passes cleanliness check!"
-          : "Station needs attention. Review findings."
+          ? "Estacao aprovada na verificacao de limpeza!"
+          : "Estacao precisa de atencao. Revise os achados."
       );
     } catch {
-      toast.error("Failed to analyze cleaning. Please try again.");
+      toast.error("Falha ao analisar limpeza. Tente novamente.");
     } finally {
       setIsAnalyzing(false);
     }
@@ -82,8 +82,8 @@ export default function CleaningAuditPage() {
       </div>
       <main className="flex-1 md:ml-64">
         <Header
-          title="Cleaning Checklist Audit"
-          description="Evaluate kitchen station cleanliness"
+          title="Auditoria de Checklist de Limpeza"
+          description="Avaliar a limpeza da estacao da cozinha"
         />
         <div className="p-4 md:p-6">
           <div className="grid gap-6 lg:grid-cols-[1fr_400px]">
@@ -91,7 +91,7 @@ export default function CleaningAuditPage() {
             <div className="space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Capture Station</CardTitle>
+                  <CardTitle className="text-base">Capturar Estacao</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <CameraCapture
@@ -103,7 +103,7 @@ export default function CleaningAuditPage() {
                   />
                   {capturedImage && !isAnalyzing && !currentResult && (
                     <Button onClick={handleAnalyze} className="w-full">
-                      Analyze Cleaning
+                      Analisar Limpeza
                     </Button>
                   )}
                 </CardContent>
@@ -114,10 +114,10 @@ export default function CleaningAuditPage() {
                 <Card>
                   <CardHeader>
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-base">Analysis Result</CardTitle>
+                      <CardTitle className="text-base">Resultado da Analise</CardTitle>
                       <div className="text-right">
                         <p className="text-2xl font-bold">{currentResult.score}</p>
-                        <p className="text-xs text-muted-foreground">Score</p>
+                        <p className="text-xs text-muted-foreground">Pontuacao</p>
                       </div>
                     </div>
                   </CardHeader>
@@ -131,10 +131,10 @@ export default function CleaningAuditPage() {
                       />
                       <p className="text-xs text-muted-foreground">
                         {currentResult.score >= 70
-                          ? "Good cleanliness level"
+                          ? "Bom nivel de limpeza"
                           : currentResult.score >= 40
-                            ? "Needs improvement"
-                            : "Immediate attention required"}
+                            ? "Precisa de melhorias"
+                            : "Atencao imediata necessaria"}
                       </p>
                     </div>
 
@@ -144,16 +144,16 @@ export default function CleaningAuditPage() {
                       <div className="grid gap-3">
                         <ResultBadge
                           value={currentResult.counter_clean}
-                          label="Counter Clean"
+                          label="Balcao Limpo"
                         />
                         <ResultBadge
                           value={currentResult.trash_full}
-                          label="Trash Full"
+                          label="Lixo Cheio"
                           invertColors
                         />
                         <ResultBadge
                           value={currentResult.floor_dirty}
-                          label="Floor Dirty"
+                          label="Chao Sujo"
                           invertColors
                         />
                       </div>
@@ -162,7 +162,7 @@ export default function CleaningAuditPage() {
                     {/* Notes */}
                     <div className="rounded-lg bg-muted p-4">
                       <p className="text-sm font-medium text-muted-foreground">
-                        Notes
+                        Observacoes
                       </p>
                       <p className="mt-1 text-sm">{currentResult.notes}</p>
                     </div>
@@ -172,7 +172,7 @@ export default function CleaningAuditPage() {
                       variant="outline"
                       className="w-full bg-transparent"
                     >
-                      New Audit
+                      Nova Auditoria
                     </Button>
                   </CardContent>
                 </Card>
@@ -182,13 +182,13 @@ export default function CleaningAuditPage() {
             {/* History Sidebar */}
             <div className="space-y-4">
               <h2 className="text-sm font-semibold text-muted-foreground">
-                Recent Audits
+                Auditorias Recentes
               </h2>
               {cleaningAudits.length === 0 ? (
                 <Card>
                   <CardContent className="flex flex-col items-center justify-center py-8 text-center">
                     <p className="text-sm text-muted-foreground">
-                      No audits yet. Capture a station to begin.
+                      Nenhuma auditoria ainda. Capture uma estacao para comecar.
                     </p>
                   </CardContent>
                 </Card>
@@ -198,7 +198,7 @@ export default function CleaningAuditPage() {
                     {cleaningAudits.map((audit) => (
                       <HistoryCard
                         key={audit.id}
-                        title="Cleaning Audit"
+                        title="Auditoria de Limpeza"
                         timestamp={audit.timestamp}
                         imageData={audit.imageData}
                         score={audit.score}

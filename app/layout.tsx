@@ -10,9 +10,9 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Kitchen Monitor - AI-Powered Operational Intelligence",
+  title: "Kitchen Monitor - Inteligencia Operacional com IA",
   description:
-    "AI-powered operational intelligence platform for food service businesses. Automate plate audits, cleaning checks, EPI compliance, and invoice processing.",
+    "Plataforma de inteligencia operacional com IA para negocios de alimentacao. Automatize auditorias de pratos, verificacoes de limpeza, conformidade de EPI e processamento de notas fiscais.",
   generator: "v0.app",
   icons: {
     icon: [
@@ -48,7 +48,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="pt-BR" suppressHydrationWarning>
       <body className={`${inter.className} antialiased`}>
         <ThemeProvider
           attribute="class"

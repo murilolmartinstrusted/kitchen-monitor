@@ -27,7 +27,7 @@ export default function NFSeReaderPage() {
     if (!file) return;
 
     if (!file.name.toLowerCase().endsWith(".xml")) {
-      toast.error("Please select an XML file.");
+      toast.error("Por favor, selecione um arquivo XML.");
       return;
     }
 
@@ -66,7 +66,7 @@ export default function NFSeReaderPage() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to parse NFS-e");
+        throw new Error("Falha ao processar NFS-e");
       }
 
       const data = await response.json();
@@ -80,9 +80,9 @@ export default function NFSeReaderPage() {
       setCurrentResult(result);
       addNFSeResult(result);
 
-      toast.success("NFS-e parsed successfully!");
+      toast.success("NFS-e processada com sucesso!");
     } catch {
-      toast.error("Failed to parse NFS-e XML. Please check the file format.");
+      toast.error("Falha ao processar XML da NFS-e. Verifique o formato do arquivo.");
     } finally {
       setIsAnalyzing(false);
     }
@@ -102,8 +102,8 @@ export default function NFSeReaderPage() {
       </div>
       <main className="flex-1 md:ml-64">
         <Header
-          title="NFS-e XML Reader"
-          description="Interpret Brazilian NFS-e documents"
+          title="Leitor de XML NFS-e"
+          description="Interpretar documentos NFS-e brasileiros"
         />
         <div className="p-4 md:p-6">
           <div className="grid gap-6 lg:grid-cols-[1fr_400px]">
@@ -111,7 +111,7 @@ export default function NFSeReaderPage() {
             <div className="space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Upload XML</CardTitle>
+                  <CardTitle className="text-base">Carregar XML</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <input
@@ -142,7 +142,7 @@ export default function NFSeReaderPage() {
                           onClick={handleClear}
                           disabled={isAnalyzing}
                         >
-                          Remove
+                          Remover
                         </Button>
                       </div>
                     </div>
@@ -156,9 +156,9 @@ export default function NFSeReaderPage() {
                         <Upload className="h-6 w-6 text-primary" />
                       </div>
                       <div>
-                        <p className="text-sm font-medium">Upload NFS-e XML</p>
+                        <p className="text-sm font-medium">Carregar XML NFS-e</p>
                         <p className="text-xs text-muted-foreground">
-                          Click to browse or drag and drop
+                          Clique para selecionar ou arraste e solte
                         </p>
                       </div>
                     </button>
@@ -166,14 +166,14 @@ export default function NFSeReaderPage() {
 
                   {selectedFile && !isAnalyzing && !currentResult && (
                     <Button onClick={handleParse} className="w-full">
-                      Parse NFS-e
+                      Processar NFS-e
                     </Button>
                   )}
 
                   {isAnalyzing && (
                     <div className="flex items-center justify-center gap-2 py-4">
                       <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                      <span className="text-sm">Analyzing XML...</span>
+                      <span className="text-sm">Analisando XML...</span>
                     </div>
                   )}
                 </CardContent>
@@ -184,10 +184,10 @@ export default function NFSeReaderPage() {
                 <Card>
                   <CardHeader>
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-base">Parsed Data</CardTitle>
+                      <CardTitle className="text-base">Dados Processados</CardTitle>
                       <Badge className="bg-success text-success-foreground">
                         <CheckCircle2 className="mr-1 h-3 w-3" />
-                        Success
+                        Sucesso
                       </Badge>
                     </div>
                   </CardHeader>
@@ -213,50 +213,50 @@ export default function NFSeReaderPage() {
 
                     <div className="grid gap-4 sm:grid-cols-2">
                       <div className="space-y-1">
-                        <p className="text-xs text-muted-foreground">Invoice Number</p>
+                        <p className="text-xs text-muted-foreground">Numero da Nota</p>
                         <p className="text-sm font-medium">{currentResult.invoice_number}</p>
                       </div>
                       <div className="space-y-1">
-                        <p className="text-xs text-muted-foreground">Issue Date</p>
+                        <p className="text-xs text-muted-foreground">Data de Emissao</p>
                         <p className="text-sm font-medium">{currentResult.issue_date}</p>
                       </div>
                       <div className="space-y-1">
-                        <p className="text-xs text-muted-foreground">Provider</p>
+                        <p className="text-xs text-muted-foreground">Prestador</p>
                         <p className="text-sm font-medium">{currentResult.provider_name}</p>
                       </div>
                       <div className="space-y-1">
-                        <p className="text-xs text-muted-foreground">Client</p>
+                        <p className="text-xs text-muted-foreground">Tomador</p>
                         <p className="text-sm font-medium">{currentResult.client_name}</p>
                       </div>
                       <div className="space-y-1">
-                        <p className="text-xs text-muted-foreground">Total Value</p>
+                        <p className="text-xs text-muted-foreground">Valor Total</p>
                         <p className="text-sm font-semibold text-primary">
                           {formatCurrency(currentResult.total_value)}
                         </p>
                       </div>
                       <div className="space-y-1">
-                        <p className="text-xs text-muted-foreground">Tax (ISS)</p>
+                        <p className="text-xs text-muted-foreground">Imposto (ISS)</p>
                         <p className="text-sm font-medium">
                           {formatCurrency(currentResult.tax_value)}
                         </p>
                       </div>
                       <div className="space-y-1 sm:col-span-2">
-                        <p className="text-xs text-muted-foreground">City</p>
+                        <p className="text-xs text-muted-foreground">Cidade</p>
                         <p className="text-sm font-medium">{currentResult.city}</p>
                       </div>
                       <div className="space-y-1 sm:col-span-2">
-                        <p className="text-xs text-muted-foreground">Service Description</p>
+                        <p className="text-xs text-muted-foreground">Descricao do Servico</p>
                         <p className="text-sm">{currentResult.service_description}</p>
                       </div>
                     </div>
 
                     <div className="rounded-lg bg-muted p-4">
-                      <p className="text-sm font-medium text-muted-foreground">Summary</p>
+                      <p className="text-sm font-medium text-muted-foreground">Resumo</p>
                       <p className="mt-1 text-sm">{currentResult.raw_summary}</p>
                     </div>
 
                     <Button onClick={handleClear} variant="outline" className="w-full bg-transparent">
-                      Parse Another
+                      Processar Outra
                     </Button>
                   </CardContent>
                 </Card>
@@ -266,13 +266,13 @@ export default function NFSeReaderPage() {
             {/* History Sidebar */}
             <div className="space-y-4">
               <h2 className="text-sm font-semibold text-muted-foreground">
-                Recent Parses
+                Processamentos Recentes
               </h2>
               {nfseResults.length === 0 ? (
                 <Card>
                   <CardContent className="flex flex-col items-center justify-center py-8 text-center">
                     <p className="text-sm text-muted-foreground">
-                      No results yet. Upload an XML to begin.
+                      Nenhum resultado ainda. Carregue um XML para comecar.
                     </p>
                   </CardContent>
                 </Card>

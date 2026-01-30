@@ -60,3 +60,34 @@ export type AuditResult =
   | CleaningAuditResult
   | EPICheckResult
   | NFSeResult;
+
+// Alert System Types
+export type AlertType = "plate" | "cleaning" | "epi" | "kitchen-score";
+export type AlertSeverity = "warning" | "critical";
+
+export interface Alert {
+  id: string;
+  type: AlertType;
+  severity: AlertSeverity;
+  message: string;
+  timestamp: string;
+  read: boolean;
+}
+
+// Timeline Event Types
+export type TimelineEventType = "plate" | "cleaning" | "epi" | "nfse";
+export type TimelineEventStatus = "ok" | "issue";
+
+export interface TimelineEvent {
+  id: string;
+  type: TimelineEventType;
+  status: TimelineEventStatus;
+  timestamp: string;
+  summary: string;
+}
+
+// Kitchen Score History
+export interface KitchenScoreEntry {
+  timestamp: string;
+  score: number;
+}

@@ -40,7 +40,7 @@ export default function LoginPage() {
     setError("");
 
     if (!email || !password) {
-      setError("Please fill in all fields");
+      setError("Por favor, preencha todos os campos");
       return;
     }
 
@@ -53,7 +53,7 @@ export default function LoginPage() {
     if (success) {
       router.push("/");
     } else {
-      setError("Invalid credentials");
+      setError("Credenciais invalidas");
       setIsLoading(false);
     }
   };
@@ -86,26 +86,26 @@ export default function LoginPage() {
         </div>
         <h1 className="mt-4 text-2xl font-bold text-foreground">Kitchen Monitor</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Operational Intelligence Platform
+          Plataforma de Inteligencia Operacional
         </p>
       </div>
 
       {/* Login Card */}
       <Card className="w-full max-w-sm border-border/50 shadow-xl">
         <CardHeader className="space-y-1 pb-4">
-          <CardTitle className="text-xl">Sign in</CardTitle>
+          <CardTitle className="text-xl">Entrar</CardTitle>
           <CardDescription>
-            Enter your credentials to access the dashboard
+            Digite suas credenciais para acessar o painel
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">E-mail</Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="you@example.com"
+                placeholder="voce@exemplo.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
@@ -113,11 +113,11 @@ export default function LoginPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">Senha</Label>
               <Input
                 id="password"
                 type="password"
-                placeholder="Enter any password"
+                placeholder="Digite qualquer senha"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="current-password"
@@ -131,22 +131,22 @@ export default function LoginPage() {
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Signing in...
+                  Entrando...
                 </>
               ) : (
-                "Sign in"
+                "Entrar"
               )}
             </Button>
           </form>
           <p className="mt-4 text-center text-xs text-muted-foreground">
-            Demo mode: Use any email and password
+            Modo demonstracao: Use qualquer e-mail e senha
           </p>
         </CardContent>
       </Card>
 
       {/* Footer */}
       <p className="mt-8 text-center text-xs text-muted-foreground">
-        AI-powered kitchen compliance monitoring
+        Monitoramento de conformidade de cozinha com IA
       </p>
     </div>
   );

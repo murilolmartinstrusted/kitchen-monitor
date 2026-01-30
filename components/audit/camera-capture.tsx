@@ -37,7 +37,7 @@ export function CameraCapture({
         setIsStreaming(true);
       }
     } catch {
-      setError("Unable to access camera. Please allow camera permissions or upload an image.");
+      setError("Nao foi possivel acessar a camera. Permita o acesso a camera ou carregue uma imagem.");
     }
   }, []);
 
@@ -114,7 +114,7 @@ export function CameraCapture({
               <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm">
                 <div className="flex flex-col items-center gap-3">
                   <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                  <span className="text-sm font-medium">Analyzing...</span>
+                  <span className="text-sm font-medium">Analisando...</span>
                 </div>
               </div>
             )}
@@ -144,7 +144,7 @@ export function CameraCapture({
               <p className="text-center text-sm text-destructive">{error}</p>
             ) : (
               <p className="text-center text-sm text-muted-foreground">
-                Start camera or upload an image to begin analysis
+                Inicie a camera ou carregue uma imagem para comecar a analise
               </p>
             )}
           </div>
@@ -169,13 +169,13 @@ export function CameraCapture({
             className="flex-1 bg-transparent"
           >
             <RotateCcw className="mr-2 h-4 w-4" />
-            Retake
+            Refazer
           </Button>
         ) : isStreaming ? (
           <>
             <Button onClick={capturePhoto} className="flex-1">
               <Camera className="mr-2 h-4 w-4" />
-              Capture
+              Capturar
             </Button>
             <Button onClick={stopCamera} variant="outline">
               <X className="h-4 w-4" />
@@ -185,7 +185,7 @@ export function CameraCapture({
           <>
             <Button onClick={startCamera} className="flex-1">
               <Camera className="mr-2 h-4 w-4" />
-              Start Camera
+              Iniciar Camera
             </Button>
             <Button
               onClick={() => fileInputRef.current?.click()}
@@ -193,7 +193,7 @@ export function CameraCapture({
               className="flex-1"
             >
               <Upload className="mr-2 h-4 w-4" />
-              Upload Image
+              Carregar Imagem
             </Button>
           </>
         )}
