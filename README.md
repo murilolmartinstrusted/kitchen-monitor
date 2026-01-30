@@ -1,5 +1,3 @@
-
-
 # Kitchen Monitor — Monitoramento Operacional para Food Service
 
 ## A dor observada no mercado
