@@ -100,10 +100,10 @@ export const useAppStore = create<AppState>()(
         // Create timeline event
         const timelineEvent = createTimelineEvent(
           "plate",
-          result.compliant ? "ok" : "issue",
-          result.compliant
-            ? "Auditoria de prato aprovada"
-            : "Auditoria de prato: itens faltando"
+          result.wellPrepared ? "ok" : "issue",
+          result.wellPrepared
+            ? "Auditoria de prato: bem preparado"
+            : "Auditoria de prato: precisa atencao"
         );
         
         set({

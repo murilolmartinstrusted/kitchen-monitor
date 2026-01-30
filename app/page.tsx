@@ -49,33 +49,17 @@ import {
 } from "recharts";
 import type { ValueType, NameType } from "recharts/types/component/DefaultTooltipContent";
 
-// Custom tooltip for plate ingredients chart
-const PlateTooltip = ({ active, payload, label }: TooltipProps<ValueType, NameType>) => {
+// Custom tooltip for plate quality chart
+const PlateTooltip = ({ active, payload }: TooltipProps<ValueType, NameType>) => {
   if (active && payload && payload.length) {
-    const presente = payload.find(p => p.dataKey === "Presente")?.value as number || 0;
-    const ausente = payload.find(p => p.dataKey === "Ausente")?.value as number || 0;
-    const total = presente + ausente;
-    const percentPresente = total > 0 ? Math.round((presente / total) * 100) : 0;
+    const entry = payload[0];
+    const value = entry?.value as number || 0;
+    const name = entry?.name as string || "";
     
     return (
       <div className="rounded-lg border bg-card p-3 shadow-lg">
-        <p className="font-semibold text-sm mb-2">{label}</p>
-        <div className="space-y-1 text-xs">
-          <div className="flex items-center justify-between gap-4">
-            <span className="flex items-center gap-1.5">
-              <span className="h-2 w-2 rounded-full bg-green-500" />
-              Presente
-            </span>
-            <span className="font-medium">{presente} ({percentPresente}%)</span>
-          </div>
-          <div className="flex items-center justify-between gap-4">
-            <span className="flex items-center gap-1.5">
-              <span className="h-2 w-2 rounded-full bg-red-500" />
-              Ausente
-            </span>
-            <span className="font-medium">{ausente} ({100 - percentPresente}%)</span>
-          </div>
-        </div>
+        <p className="font-semibold text-sm mb-1">{name}</p>
+        <p className="text-sm">{value} auditoria{value !== 1 ? 's' : ''}</p>
       </div>
     );
   }
@@ -154,6 +138,8 @@ export default function DashboardPage() {
     timeline,
   } = useAppStore();
   const kitchenScore = useKitchenScore();
+  const plateCompliant = plateAudits.filter((a) => a.wellPrepared).length; // Declare plateCompliant here
+  const plateWellPrepared = plateAudits.filter((a) => a.wellPrepared === true).length; // Declare plateWellPrepared here
 
   React.useEffect(() => {
     setMounted(true);
@@ -166,7 +152,6 @@ export default function DashboardPage() {
     epiChecks.length +
     nfseResults.length;
 
-  const plateCompliant = plateAudits.filter((a) => a.compliant).length;
   const epiCompliant = epiChecks.filter((c) => c.compliant).length;
   const totalCompliance = plateAudits.length + epiChecks.length;
   const complianceRate =
@@ -181,24 +166,19 @@ export default function DashboardPage() {
       )
     : 0;
 
-  // Plate Audit - Ingredients chart data
-  const plateItemsData = [
+  // Plate Audit - Quality chart data (Pie chart)
+  const plateQualityData = [
     {
-      name: "Pao",
-      Presente: plateAudits.filter((a) => a.bread === true).length,
-      Ausente: plateAudits.filter((a) => a.bread === false).length,
+      name: "Bem Preparado",
+      value: plateAudits.filter((a) => a.wellPrepared === true).length,
+      fill: "#22c55e",
     },
     {
-      name: "Carne",
-      Presente: plateAudits.filter((a) => a.meat === true).length,
-      Ausente: plateAudits.filter((a) => a.meat === false).length,
+      name: "Precisa Atencao",
+      value: plateAudits.filter((a) => a.wellPrepared === false).length,
+      fill: "#ef4444",
     },
-    {
-      name: "Queijo",
-      Presente: plateAudits.filter((a) => a.cheese === true).length,
-      Ausente: plateAudits.filter((a) => a.cheese === false).length,
-    },
-  ];
+  ].filter(d => d.value > 0);
 
   // Cleaning Audit - Score distribution
   const scoreRanges = [
@@ -252,10 +232,10 @@ export default function DashboardPage() {
 
   // Compliance Pie Chart data
   const complianceData = [
-    { name: "Conforme", value: plateCompliant + epiCompliant, fill: "#22c55e" },
+    { name: "Conforme", value: plateWellPrepared + epiCompliant, fill: "#22c55e" },
     {
       name: "Nao Conforme",
-      value: totalCompliance - (plateCompliant + epiCompliant),
+      value: totalCompliance - (plateWellPrepared + epiCompliant),
       fill: "#ef4444",
     },
   ].filter((d) => d.value > 0);
@@ -432,9 +412,9 @@ export default function DashboardPage() {
                   <CardHeader className="pb-2">
                     <div className="flex items-center gap-2">
                       <UtensilsCrossed className="h-5 w-5 text-orange-500" />
-                      <CardTitle className="text-base">Ingredientes</CardTitle>
+                      <CardTitle className="text-base">Qualidade dos Pratos</CardTitle>
                     </div>
-                    <CardDescription>Presenca por auditoria</CardDescription>
+                    <CardDescription>Avaliacao de preparo</CardDescription>
                   </CardHeader>
                   <CardContent>
                     {plateAudits.length === 0 ? (
@@ -447,42 +427,27 @@ export default function DashboardPage() {
                     ) : (
                       <div className="h-48">
                         <ResponsiveContainer width="100%" height="100%">
-                          <BarChart data={plateItemsData} layout="vertical">
-                            <CartesianGrid
-                              strokeDasharray="3 3"
-                              stroke="hsl(var(--border))"
+                          <RechartsPieChart>
+                            <Pie
+                              data={plateQualityData}
+                              cx="50%"
+                              cy="50%"
+                              innerRadius={40}
+                              outerRadius={70}
+                              paddingAngle={2}
+                              dataKey="value"
+                              nameKey="name"
+                            >
+                              {plateQualityData.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={entry.fill} />
+                              ))}
+                            </Pie>
+                            <Tooltip content={<PlateTooltip />} />
+                            <Legend
+                              wrapperStyle={{ fontSize: "10px" }}
+                              formatter={(value) => <span className="text-foreground">{value}</span>}
                             />
-                            <XAxis
-                              type="number"
-                              tick={{
-                                fill: "hsl(var(--muted-foreground))",
-                                fontSize: 10,
-                              }}
-                            />
-                            <YAxis
-                              dataKey="name"
-                              type="category"
-                              tick={{
-                                fill: "hsl(var(--muted-foreground))",
-                                fontSize: 10,
-                              }}
-                              width={45}
-                            />
-<Tooltip content={<PlateTooltip />} />
-                                            <Legend wrapperStyle={{ fontSize: "10px" }} />
-                                            <Bar
-                                              dataKey="Presente"
-                                              fill="#22c55e"
-                                              stackId="a"
-                                              radius={[0, 4, 4, 0]}
-                                            />
-                                            <Bar
-                                              dataKey="Ausente"
-                                              fill="#ef4444"
-                                              stackId="a"
-                                              radius={[0, 4, 4, 0]}
-                                            />
-                                          </BarChart>
+                          </RechartsPieChart>
                         </ResponsiveContainer>
                       </div>
                     )}
@@ -527,8 +492,8 @@ export default function DashboardPage() {
                                 fontSize: 10,
                               }}
                             />
-<Tooltip content={<CleaningTooltip />} />
-                                            <Bar dataKey="quantidade" radius={[4, 4, 0, 0]}>
+                            <Tooltip content={<CleaningTooltip />} />
+                            <Bar dataKey="quantidade" radius={[4, 4, 0, 0]}>
                               {scoreRanges.map((entry, index) => (
                                 <Cell key={`cell-${index}`} fill={entry.fill} />
                               ))}
@@ -581,21 +546,21 @@ export default function DashboardPage() {
                               }}
                               width={50}
                             />
-<Tooltip content={<EPITooltip />} />
-                                            <Legend wrapperStyle={{ fontSize: "10px" }} />
-                                            <Bar
-                                              dataKey="Conforme"
-                                              fill="#22c55e"
-                                              stackId="a"
-                                              radius={[0, 4, 4, 0]}
-                                            />
-                                            <Bar
-                                              dataKey="Faltando"
-                                              fill="#ef4444"
-                                              stackId="a"
-                                              radius={[0, 4, 4, 0]}
-                                            />
-                                          </BarChart>
+                            <Tooltip content={<EPITooltip />} />
+                            <Legend wrapperStyle={{ fontSize: "10px" }} />
+                            <Bar
+                              dataKey="Conforme"
+                              fill="#22c55e"
+                              stackId="a"
+                              radius={[0, 4, 4, 0]}
+                            />
+                            <Bar
+                              dataKey="Faltando"
+                              fill="#ef4444"
+                              stackId="a"
+                              radius={[0, 4, 4, 0]}
+                            />
+                          </BarChart>
                         </ResponsiveContainer>
                       </div>
                     )}

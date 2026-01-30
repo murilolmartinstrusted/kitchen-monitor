@@ -81,7 +81,7 @@ export function HistoryCard({
             {detectedFoods.slice(0, 4).map((food, i) => (
               <span
                 key={i}
-                className={`text-xs px-1.5 py-0.5 rounded ${food.present ? "bg-green-500/10 text-green-600" : "bg-red-500/10 text-red-600"}`}
+                className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground"
               >
                 {food.name}
               </span>

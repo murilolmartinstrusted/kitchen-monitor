@@ -24,7 +24,7 @@ export function calculateKitchenScore(
 
   // Plate audit contribution
   plateAudits.forEach((audit) => {
-    if (audit.compliant) {
+    if (audit.wellPrepared) {
       score += 10;
     } else {
       score -= 15;
@@ -83,7 +83,7 @@ export function generateAlerts(
 
   // Check recent plate audit failures
   const recentPlateFailures = plateAudits
-    .filter((a) => !a.compliant)
+    .filter((a) => !a.wellPrepared)
     .slice(0, 5);
   
   recentPlateFailures.forEach((audit) => {
@@ -93,7 +93,7 @@ export function generateAlerts(
         id: alertId,
         type: "plate",
         severity: "warning",
-        message: `Auditoria de prato falhou: itens faltando detectados`,
+        message: `Prato precisa de atencao: problemas detectados no preparo`,
         timestamp: audit.timestamp,
         read: false,
       });

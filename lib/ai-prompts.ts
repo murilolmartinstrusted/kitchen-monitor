@@ -8,26 +8,23 @@ Liste TODOS os alimentos visiveis no prato, incluindo mas nao limitado a:
 - Vegetais e saladas
 - Molhos e acompanhamentos
 - Queijos e laticinios
+- Bebidas (se visiveis)
+- Sobremesas
 - Outros ingredientes visiveis
 
-Para cada alimento detectado, informe se esta presente e faca uma observacao sobre sua aparencia.
+Para cada alimento detectado, faca uma observacao sobre sua aparencia, qualidade aparente e estado de preparo.
 
 TAREFA 2 - AVALIAR QUALIDADE DO PREPARO:
 Avalie se o prato esta BEM PREPARADO considerando:
 - Aparencia visual geral (apresentacao)
 - Porcoes adequadas
 - Cozimento aparente dos ingredientes
-- Organizacao do prato
+- Organizacao e disposicao no prato
+- Higiene aparente
 
-TAREFA 3 - VERIFICAR INGREDIENTES OBRIGATORIOS:
-Verifique especificamente se contem:
-- Pao (qualquer tipo)
-- Carne/Proteina
-- Queijo
+Forneca observacoes detalhadas sobre o preparo.
 
-O prato esta CONFORME se tiver todos os ingredientes obrigatorios E estiver bem preparado.
-
-IMPORTANTE: Responda SEMPRE em portugues brasileiro. Seja detalhado nas observacoes.`,
+IMPORTANTE: Responda SEMPRE em portugues brasileiro. Seja detalhado e especifico nas observacoes.`,
 
   cleaningAudit: `Voce e um assistente de IA de inspecao de higiene de cozinha. Analise a imagem fornecida de uma estacao de cozinha e avalie sua limpeza.
 

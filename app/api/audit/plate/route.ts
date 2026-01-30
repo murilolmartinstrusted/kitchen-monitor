@@ -9,16 +9,9 @@ const detectedFoodSchema = z.object({
 });
 
 const plateAuditSchema = z.object({
-  // Detailed food detection
   detectedFoods: z.array(detectedFoodSchema).describe("Lista de todos os alimentos identificados no prato"),
   wellPrepared: z.boolean().describe("Se o prato esta bem preparado (boa apresentacao, porcoes adequadas, cozimento correto)"),
   preparationNotes: z.string().describe("Observacoes detalhadas sobre a qualidade do preparo do prato"),
-  // Required ingredients check (legacy)
-  bread: z.boolean().describe("Se o prato contem pao"),
-  meat: z.boolean().describe("Se o prato contem carne ou proteina"),
-  cheese: z.boolean().describe("Se o prato contem queijo"),
-  // Overall compliance
-  compliant: z.boolean().describe("Se o prato esta conforme (tem todos ingredientes obrigatorios E esta bem preparado)"),
   notes: z.string().describe("Resumo geral da analise do prato em portugues"),
 });
 
