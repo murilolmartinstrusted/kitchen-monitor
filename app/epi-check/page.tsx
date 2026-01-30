@@ -118,7 +118,7 @@ export default function EPICheckPage() {
                       <div className="grid gap-3">
                         <ResultBadge value={currentResult.hairnet} label="Touca" />
                         <ResultBadge value={currentResult.gloves} label="Luvas" />
-                        <ResultBadge value={currentResult.apron} label="Avental" />
+                        <ResultBadge value={currentResult.apron} label="Avental/Uniforme" />
                       </div>
                     </div>
                     <div className="rounded-lg bg-muted p-4">

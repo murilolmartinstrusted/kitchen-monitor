@@ -15,7 +15,7 @@ const epiCheckSchema = z.object({
     "Whether the worker is wearing food service gloves"
   ),
   apron: epiStatusSchema.describe(
-    "Whether the worker is wearing a protective apron"
+    "Whether the worker is wearing a protective apron or uniform"
   ),
   compliant: z
     .boolean()

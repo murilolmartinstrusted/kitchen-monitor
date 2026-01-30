@@ -148,13 +148,6 @@ export default function PlateAuditPage() {
                       </div>
                     )}
 
-                    {/* Notes */}
-                    <div className="rounded-lg bg-muted p-4">
-                      <p className="text-sm font-medium text-muted-foreground">
-                        Resumo da Analise
-                      </p>
-                      <p className="mt-1 text-sm">{currentResult.notes}</p>
-                    </div>
                     <Button
                       onClick={handleClear}
                       variant="outline"
