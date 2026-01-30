@@ -4,10 +4,20 @@ import * as React from "react";
 import Link from "next/link";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { Header } from "@/components/dashboard/header";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { KitchenScoreCard } from "@/components/dashboard/kitchen-score-card";
+import { AlertPanel } from "@/components/dashboard/alert-panel";
+import { TimelinePanel } from "@/components/dashboard/timeline-panel";
+import { ScoreTrendChart } from "@/components/dashboard/score-trend-chart";
+import { CriticalBanner } from "@/components/dashboard/critical-banner";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { useAppStore } from "@/lib/store";
+import { useAppStore, useKitchenScore } from "@/lib/store";
 import {
   UtensilsCrossed,
   SprayCanIcon,
@@ -19,6 +29,7 @@ import {
   Activity,
   TrendingUp,
   AlertTriangle,
+  PieChart,
 } from "lucide-react";
 import {
   BarChart,
@@ -29,83 +40,106 @@ import {
   Tooltip,
   ResponsiveContainer,
   Cell,
+  Legend,
+  PieChart as RechartsPieChart,
+  Pie,
+  RadialBarChart,
+  RadialBar,
 } from "recharts";
 
 export default function DashboardPage() {
   const [mounted, setMounted] = React.useState(false);
-  const { plateAudits, cleaningAudits, epiChecks, nfseResults } = useAppStore();
+  const {
+    plateAudits,
+    cleaningAudits,
+    epiChecks,
+    nfseResults,
+    alerts,
+    timeline,
+  } = useAppStore();
+  const kitchenScore = useKitchenScore();
 
   React.useEffect(() => {
     setMounted(true);
   }, []);
 
   // Calculate metrics
-  const totalAnalyses = plateAudits.length + cleaningAudits.length + epiChecks.length + nfseResults.length;
-  
+  const totalAnalyses =
+    plateAudits.length +
+    cleaningAudits.length +
+    epiChecks.length +
+    nfseResults.length;
+
   const plateCompliant = plateAudits.filter((a) => a.compliant).length;
   const epiCompliant = epiChecks.filter((c) => c.compliant).length;
   const totalCompliance = plateAudits.length + epiChecks.length;
-  const complianceRate = totalCompliance > 0 
-    ? Math.round(((plateCompliant + epiCompliant) / totalCompliance) * 100)
-    : 0;
+  const complianceRate =
+    totalCompliance > 0
+      ? Math.round(((plateCompliant + epiCompliant) / totalCompliance) * 100)
+      : 100;
 
   const avgCleaningScore = cleaningAudits.length
-    ? Math.round(cleaningAudits.reduce((sum, a) => sum + a.score, 0) / cleaningAudits.length)
+    ? Math.round(
+        cleaningAudits.reduce((sum, a) => sum + a.score, 0) /
+          cleaningAudits.length
+      )
     : 0;
 
-  const plateFailures = plateAudits.filter((a) => !a.compliant).length;
-
-  // Plate Audit - Items missing breakdown
+  // Plate Audit - Ingredients chart data
   const plateItemsData = [
-    { 
-      name: "Pao", 
-      presente: plateAudits.filter(a => a.bread === true).length,
-      ausente: plateAudits.filter(a => a.bread === false).length,
+    {
+      name: "Pao",
+      Presente: plateAudits.filter((a) => a.bread === true).length,
+      Ausente: plateAudits.filter((a) => a.bread === false).length,
     },
-    { 
-      name: "Carne", 
-      presente: plateAudits.filter(a => a.meat === true).length,
-      ausente: plateAudits.filter(a => a.meat === false).length,
+    {
+      name: "Carne",
+      Presente: plateAudits.filter((a) => a.meat === true).length,
+      Ausente: plateAudits.filter((a) => a.meat === false).length,
     },
-    { 
-      name: "Queijo", 
-      presente: plateAudits.filter(a => a.cheese === true).length,
-      ausente: plateAudits.filter(a => a.cheese === false).length,
+    {
+      name: "Queijo",
+      Presente: plateAudits.filter((a) => a.cheese === true).length,
+      Ausente: plateAudits.filter((a) => a.cheese === false).length,
     },
   ];
 
-  // Cleaning Audit - Issues breakdown
-  const cleaningIssuesData = [
-    { 
-      name: "Balcao Sujo", 
-      value: cleaningAudits.filter(a => a.counter_clean === false).length,
+  // Cleaning Audit - Score distribution
+  const scoreRanges = [
+    {
+      range: "Critico",
+      quantidade: cleaningAudits.filter((a) => a.score < 40).length,
+      fill: "#ef4444",
     },
-    { 
-      name: "Lixo Cheio", 
-      value: cleaningAudits.filter(a => a.trash_full === true).length,
+    {
+      range: "Atencao",
+      quantidade: cleaningAudits.filter((a) => a.score >= 40 && a.score < 70)
+        .length,
+      fill: "#f59e0b",
     },
-    { 
-      name: "Chao Sujo", 
-      value: cleaningAudits.filter(a => a.floor_dirty === true).length,
+    {
+      range: "Bom",
+      quantidade: cleaningAudits.filter((a) => a.score >= 70).length,
+      fill: "#22c55e",
     },
-  ].filter(d => d.value > 0);
+  ];
 
-  // EPI Check - Equipment missing breakdown  
+  // EPI Check - Equipment chart data
   const epiEquipmentData = [
-    { 
-      name: "Touca", 
-      conforme: epiChecks.filter(c => c.hairnet === true).length,
-      faltando: epiChecks.filter(c => c.hairnet === false).length,
+    {
+      name: "Touca",
+      Conforme: epiChecks.filter((c) => c.hairnet === true).length,
+      Faltando: epiChecks.filter((c) => c.hairnet === false).length,
     },
-    { 
-      name: "Luvas", 
-      conforme: epiChecks.filter(c => c.gloves === true).length,
-      faltando: epiChecks.filter(c => c.gloves === false).length,
+    {
+      name: "Luvas",
+      Conforme: epiChecks.filter((c) => c.gloves === true).length,
+      Faltando: epiChecks.filter((c) => c.gloves === false).length,
     },
-    { 
-      name: "Avental", 
-      conforme: epiChecks.filter(c => c.apron === true).length,
-      faltando: epiChecks.filter(c => c.apron === false).length,
+    {
+      name: "Avental",
+      Conforme: epiChecks.filter((c) => c.apron === true).length,
+      Faltando: epiChecks.filter((c) => c.apron === false).length,
     },
   ];
 
@@ -120,58 +154,72 @@ export default function DashboardPage() {
     }).format(value);
   };
 
-  // Score distribution for cleaning audits
-  const scoreRanges = [
-    { range: "0-40", count: cleaningAudits.filter(a => a.score < 40).length, fill: "hsl(var(--destructive))" },
-    { range: "40-70", count: cleaningAudits.filter(a => a.score >= 40 && a.score < 70).length, fill: "hsl(var(--warning))" },
-    { range: "70-100", count: cleaningAudits.filter(a => a.score >= 70).length, fill: "hsl(var(--success))" },
+  // Compliance Pie Chart data
+  const complianceData = [
+    { name: "Conforme", value: plateCompliant + epiCompliant, fill: "#22c55e" },
+    {
+      name: "Nao Conforme",
+      value: totalCompliance - (plateCompliant + epiCompliant),
+      fill: "#ef4444",
+    },
+  ].filter((d) => d.value > 0);
+
+  // EPI Radial gauge data
+  const epiComplianceRate =
+    epiChecks.length > 0
+      ? Math.round((epiCompliant / epiChecks.length) * 100)
+      : 0;
+  const epiGaugeData = [
+    {
+      name: "EPI",
+      value: epiComplianceRate,
+      fill:
+        epiComplianceRate >= 90
+          ? "#22c55e"
+          : epiComplianceRate >= 70
+            ? "#f59e0b"
+            : "#ef4444",
+    },
   ];
 
-  const recentActivity = [
-    ...plateAudits.slice(0, 5).map((a) => ({
-      type: "plate" as const,
-      timestamp: a.timestamp,
-      compliant: a.compliant,
-      title: "Auditoria de Prato",
-      summary: a.compliant ? "Todos os itens presentes" : "Itens faltando detectados",
-    })),
-    ...cleaningAudits.slice(0, 5).map((a) => ({
-      type: "cleaning" as const,
-      timestamp: a.timestamp,
-      score: a.score,
+  // Module quick actions
+  const modules = [
+    {
+      title: "Auditoria de Pratos",
+      description: "Verificar montagem de pratos",
+      icon: UtensilsCrossed,
+      href: "/plate-audit",
+      color: "text-orange-500",
+      bgColor: "bg-orange-500/10",
+      count: plateAudits.length,
+    },
+    {
       title: "Auditoria de Limpeza",
-      summary: `Pontuacao: ${a.score}/100`,
-    })),
-    ...epiChecks.slice(0, 5).map((c) => ({
-      type: "epi" as const,
-      timestamp: c.timestamp,
-      compliant: c.compliant,
+      description: "Verificar checklist de limpeza",
+      icon: SprayCanIcon,
+      href: "/cleaning-audit",
+      color: "text-blue-500",
+      bgColor: "bg-blue-500/10",
+      count: cleaningAudits.length,
+    },
+    {
       title: "Verificacao de EPI",
-      summary: c.compliant ? "Totalmente em conformidade" : "Equipamento faltando",
-    })),
-    ...nfseResults.slice(0, 5).map((r) => ({
-      type: "nfse" as const,
-      timestamp: r.timestamp,
-      filename: r.filename,
-      title: "NFS-e Processada",
-      summary: r.filename,
-    })),
-  ]
-    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-    .slice(0, 10);
-
-  const barChartData = [
-    { name: "Auditorias de Pratos", total: plateAudits.length, compliant: plateCompliant },
-    { name: "Auditorias de Limpeza", total: cleaningAudits.length, compliant: cleaningAudits.filter(a => a.compliant).length },
-    { name: "Verificacoes de EPI", total: epiChecks.length, compliant: epiCompliant },
-    { name: "NFS-e", total: nfseResults.length, compliant: nfseResults.length }, // Assuming all NFS-e results are compliant for simplicity
-  ];
-
-  const pieChartData = [
-    { name: "Auditorias de Pratos", value: plateAudits.length },
-    { name: "Auditorias de Limpeza", value: cleaningAudits.length },
-    { name: "Verificacoes de EPI", value: epiChecks.length },
-    { name: "NFS-e", value: nfseResults.length },
+      description: "Verificar equipamentos de protecao",
+      icon: HardHat,
+      href: "/epi-check",
+      color: "text-amber-500",
+      bgColor: "bg-amber-500/10",
+      count: epiChecks.length,
+    },
+    {
+      title: "Leitor de NFS-e",
+      description: "Processar notas fiscais",
+      icon: FileText,
+      href: "/nfse-reader",
+      color: "text-purple-500",
+      bgColor: "bg-purple-500/10",
+      count: nfseResults.length,
+    },
   ];
 
   if (!mounted) {
@@ -191,448 +239,395 @@ export default function DashboardPage() {
         <Sidebar />
       </div>
       <main className="flex-1 md:ml-64">
+        {/* Critical Alert Banner */}
+        <CriticalBanner />
+
         <Header
-          title="Painel"
-          description="Visao geral de inteligencia operacional com IA"
+          title="Centro de Controle"
+          description="Inteligencia operacional em tempo real"
         />
+
         <div className="p-4 md:p-6 space-y-6">
-          {/* Key Metrics */}
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-            {/* Total Analyses */}
-            <Card className="relative overflow-hidden">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Total de Analises
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-bold">{totalAnalyses}</span>
-                  <Activity className="h-5 w-5 text-primary" />
-                </div>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Todos os tipos de auditoria
-                </p>
-              </CardContent>
-            </Card>
+          {/* Hero Row: Kitchen Score + Quick Stats */}
+          <div className="grid gap-4 lg:grid-cols-3">
+            {/* Kitchen Score Hero Card */}
+            <div className="lg:col-span-1">
+              <KitchenScoreCard />
+            </div>
 
-            {/* Compliance Rate */}
-            <Card className="relative overflow-hidden">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Taxa de Conformidade
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-bold">{complianceRate}%</span>
-                  <TrendingUp className="h-5 w-5 text-success" />
-                </div>
-                <Progress value={complianceRate} className="mt-2 h-2" indicatorClassName="bg-success" />
-              </CardContent>
-            </Card>
-
-            {/* Cleaning Score */}
-            <Card className="relative overflow-hidden">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Pontuacao Media Limpeza
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-bold">{avgCleaningScore}</span>
-                  <span className="text-lg text-muted-foreground">/100</span>
-                </div>
-                <Progress 
-                  value={avgCleaningScore} 
-                  className="mt-2 h-2" 
-                  indicatorClassName={avgCleaningScore >= 70 ? "bg-success" : avgCleaningScore >= 40 ? "bg-warning" : "bg-destructive"} 
-                />
-              </CardContent>
-            </Card>
-
-            {/* EPI Compliance */}
-            <Card className="relative overflow-hidden">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Conformidade EPI
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-bold">
-                    {epiChecks.length > 0 ? Math.round((epiCompliant / epiChecks.length) * 100) : 0}%
-                  </span>
-                  <HardHat className="h-5 w-5 text-chart-3" />
-                </div>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {epiCompliant}/{epiChecks.length} verificacoes aprovadas
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Plate Failures */}
-            <Card className="relative overflow-hidden">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Falhas em Pratos
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-baseline gap-2">
-                  <span className={`text-3xl font-bold ${plateFailures > 0 ? "text-destructive" : ""}`}>
-                    {plateFailures}
-                  </span>
-                  {plateFailures > 0 && <AlertTriangle className="h-5 w-5 text-destructive" />}
-                </div>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {plateAudits.length > 0 ? `${Math.round((plateFailures / plateAudits.length) * 100)}% taxa de falha` : "Nenhuma auditoria ainda"}
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Module-Specific Charts */}
-          <div className="grid gap-6 lg:grid-cols-2">
-            {/* Plate Audit - Ingredients Analysis */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <UtensilsCrossed className="h-5 w-5 text-chart-1" />
-                  <CardTitle className="text-base">Auditoria de Pratos - Ingredientes</CardTitle>
-                </div>
-                <CardDescription>Presenca de ingredientes nas auditorias</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {plateAudits.length === 0 ? (
-                  <div className="flex h-64 items-center justify-center text-muted-foreground">
-                    <div className="text-center">
-                      <UtensilsCrossed className="mx-auto h-12 w-12 opacity-50" />
-                      <p className="mt-2">Sem auditorias de pratos ainda.</p>
-                    </div>
+            {/* Quick Stats */}
+            <div className="lg:col-span-2 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Total Auditorias
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-2xl font-bold">{totalAnalyses}</span>
+                    <Activity className="h-4 w-4 text-primary" />
                   </div>
-                ) : (
-                  <div className="h-64">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={plateItemsData} layout="vertical">
-                        <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                        <XAxis type="number" tick={{ fill: "hsl(var(--muted-foreground))" }} />
-                        <YAxis dataKey="name" type="category" tick={{ fill: "hsl(var(--muted-foreground))" }} width={60} />
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: "hsl(var(--card))",
-                            border: "1px solid hsl(var(--border))",
-                            borderRadius: "var(--radius)",
-                          }}
-                        />
-                        <Bar dataKey="presente" fill="hsl(var(--success))" name="Presente" stackId="a" radius={[0, 4, 4, 0]} />
-                        <Bar dataKey="ausente" fill="hsl(var(--destructive))" name="Ausente" stackId="a" radius={[0, 4, 4, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
 
-            {/* Cleaning Audit - Issues & Score */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <SprayCanIcon className="h-5 w-5 text-chart-2" />
-                  <CardTitle className="text-base">Auditoria de Limpeza - Problemas</CardTitle>
-                </div>
-                <CardDescription>Distribuicao de pontuacoes e problemas encontrados</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {cleaningAudits.length === 0 ? (
-                  <div className="flex h-64 items-center justify-center text-muted-foreground">
-                    <div className="text-center">
-                      <SprayCanIcon className="mx-auto h-12 w-12 opacity-50" />
-                      <p className="mt-2">Sem auditorias de limpeza ainda.</p>
-                    </div>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Taxa Conformidade
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-2xl font-bold">{complianceRate}%</span>
+                    <TrendingUp
+                      className={`h-4 w-4 ${complianceRate >= 80 ? "text-green-500" : "text-yellow-500"}`}
+                    />
                   </div>
-                ) : (
-                  <div className="h-64 flex flex-col gap-4">
-                    {/* Score Distribution */}
-                    <div className="flex-1">
-                      <p className="text-xs font-medium text-muted-foreground mb-2">Distribuicao de Pontuacao</p>
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={scoreRanges}>
-                          <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                          <XAxis dataKey="range" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} />
-                          <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} />
-                          <Tooltip
-                            contentStyle={{
-                              backgroundColor: "hsl(var(--card))",
-                              border: "1px solid hsl(var(--border))",
-                              borderRadius: "var(--radius)",
-                            }}
-                          />
-                          <Bar dataKey="count" name="Auditorias" radius={[4, 4, 0, 0]}>
-                            {scoreRanges.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={entry.fill} />
-                            ))}
-                          </Bar>
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
-                    {/* Issues Legend */}
-                    {cleaningIssuesData.length > 0 && (
-                      <div className="flex flex-wrap gap-3 text-xs">
-                        {cleaningIssuesData.map((issue, i) => (
-                          <div key={i} className="flex items-center gap-1">
-                            <div className="h-2 w-2 rounded-full bg-destructive" />
-                            <span>{issue.name}: {issue.value}</span>
-                          </div>
-                        ))}
-                      </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Media Limpeza
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-2xl font-bold">{avgCleaningScore}</span>
+                    <span className="text-sm text-muted-foreground">/100</span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Alertas Ativos
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-2xl font-bold">
+                      {alerts.filter((a) => !a.read).length}
+                    </span>
+                    {alerts.filter((a) => !a.read && a.severity === "critical")
+                      .length > 0 && (
+                      <AlertTriangle className="h-4 w-4 text-red-500" />
                     )}
                   </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* EPI Check - Equipment Analysis */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <HardHat className="h-5 w-5 text-chart-3" />
-                  <CardTitle className="text-base">Verificacao de EPI - Equipamentos</CardTitle>
-                </div>
-                <CardDescription>Conformidade por tipo de equipamento</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {epiChecks.length === 0 ? (
-                  <div className="flex h-64 items-center justify-center text-muted-foreground">
-                    <div className="text-center">
-                      <HardHat className="mx-auto h-12 w-12 opacity-50" />
-                      <p className="mt-2">Sem verificacoes de EPI ainda.</p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="h-64">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={epiEquipmentData} layout="vertical">
-                        <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                        <XAxis type="number" tick={{ fill: "hsl(var(--muted-foreground))" }} />
-                        <YAxis dataKey="name" type="category" tick={{ fill: "hsl(var(--muted-foreground))" }} width={60} />
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: "hsl(var(--card))",
-                            border: "1px solid hsl(var(--border))",
-                            borderRadius: "var(--radius)",
-                          }}
-                        />
-                        <Bar dataKey="conforme" fill="hsl(var(--success))" name="Conforme" stackId="a" radius={[0, 4, 4, 0]} />
-                        <Bar dataKey="faltando" fill="hsl(var(--destructive))" name="Faltando" stackId="a" radius={[0, 4, 4, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* NFS-e - Financial Summary */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <FileText className="h-5 w-5 text-chart-4" />
-                  <CardTitle className="text-base">Leitor NFS-e - Resumo Financeiro</CardTitle>
-                </div>
-                <CardDescription>Total de notas processadas e valores</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {nfseResults.length === 0 ? (
-                  <div className="flex h-64 items-center justify-center text-muted-foreground">
-                    <div className="text-center">
-                      <FileText className="mx-auto h-12 w-12 opacity-50" />
-                      <p className="mt-2">Sem notas fiscais processadas ainda.</p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="h-64 flex flex-col justify-center gap-6">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="rounded-lg bg-muted p-4 text-center">
-                        <p className="text-xs text-muted-foreground">Notas Processadas</p>
-                        <p className="text-2xl font-bold text-chart-4">{nfseResults.length}</p>
-                      </div>
-                      <div className="rounded-lg bg-muted p-4 text-center">
-                        <p className="text-xs text-muted-foreground">Prestadores</p>
-                        <p className="text-2xl font-bold text-chart-4">
-                          {new Set(nfseResults.map(r => r.provider_name)).size}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="rounded-lg bg-primary/10 p-4 text-center">
-                        <p className="text-xs text-muted-foreground">Valor Total</p>
-                        <p className="text-xl font-bold text-primary">{formatCurrency(totalNfseValue)}</p>
-                      </div>
-                      <div className="rounded-lg bg-destructive/10 p-4 text-center">
-                        <p className="text-xs text-muted-foreground">Total ISS</p>
-                        <p className="text-xl font-bold text-destructive">{formatCurrency(totalTaxValue)}</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </div>
           </div>
 
-          {/* Quick Actions & Recent Activity */}
-          <div className="grid gap-6 lg:grid-cols-2">
-            {/* Quick Actions */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Acoes Rapidas</CardTitle>
-                <CardDescription>Inicie uma nova auditoria ou processe documentos</CardDescription>
-              </CardHeader>
-              <CardContent className="grid gap-3 sm:grid-cols-2">
-                <Button asChild variant="outline" className="justify-start h-auto py-4 bg-transparent">
-                  <Link href="/plate-audit">
-                    <UtensilsCrossed className="mr-3 h-5 w-5 text-chart-1" />
-                    <div className="text-left">
-                      <p className="font-medium">Auditoria de Pratos</p>
-                      <p className="text-xs text-muted-foreground">
-                        Verificar ingredientes
-                      </p>
-                    </div>
-                    <ArrowRight className="ml-auto h-4 w-4" />
-                  </Link>
-                </Button>
-                <Button asChild variant="outline" className="justify-start h-auto py-4 bg-transparent">
-                  <Link href="/cleaning-audit">
-                    <SprayCanIcon className="mr-3 h-5 w-5 text-chart-2" />
-                    <div className="text-left">
-                      <p className="font-medium">Auditoria de Limpeza</p>
-                      <p className="text-xs text-muted-foreground">
-                        Verificar limpeza
-                      </p>
-                    </div>
-                    <ArrowRight className="ml-auto h-4 w-4" />
-                  </Link>
-                </Button>
-                <Button asChild variant="outline" className="justify-start h-auto py-4 bg-transparent">
-                  <Link href="/epi-check">
-                    <HardHat className="mr-3 h-5 w-5 text-chart-3" />
-                    <div className="text-left">
-                      <p className="font-medium">Verificacao de EPI</p>
-                      <p className="text-xs text-muted-foreground">
-                        Verificar equipamentos
-                      </p>
-                    </div>
-                    <ArrowRight className="ml-auto h-4 w-4" />
-                  </Link>
-                </Button>
-                <Button asChild variant="outline" className="justify-start h-auto py-4 bg-transparent">
-                  <Link href="/nfse-reader">
-                    <FileText className="mr-3 h-5 w-5 text-chart-4" />
-                    <div className="text-left">
-                      <p className="font-medium">Leitor NFS-e</p>
-                      <p className="text-xs text-muted-foreground">
-                        Processar notas fiscais
-                      </p>
-                    </div>
-                    <ArrowRight className="ml-auto h-4 w-4" />
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
+          {/* Main Content Grid */}
+          <div className="grid gap-6 lg:grid-cols-3">
+            {/* Left Column: Charts */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Score Trend */}
+              <ScoreTrendChart />
 
-            {/* Recent Activity */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Atividade Recente</CardTitle>
-                <CardDescription>Ultimos resultados de auditorias e analises</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {recentActivity.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-8 text-center">
-                    <Activity className="h-10 w-10 text-muted-foreground/40" />
-                    <p className="mt-3 text-sm text-muted-foreground">
-                      Nenhuma atividade ainda
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Comece executando uma auditoria nas Acoes Rapidas
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-3 max-h-80 overflow-y-auto pr-2">
-                    {recentActivity.map((activity, index) => (
-                      <div
-                        key={`${activity.type}-${index}`}
-                        className="flex items-center gap-3 rounded-lg border border-border p-3 transition-colors hover:bg-muted/50"
-                      >
-                        <div
-                          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${
-                            activity.type === "plate"
-                              ? "bg-chart-1/10"
-                              : activity.type === "cleaning"
-                                ? "bg-chart-2/10"
-                                : activity.type === "epi"
-                                  ? "bg-chart-3/10"
-                                  : "bg-chart-4/10"
-                          }`}
-                        >
-                          {activity.type === "plate" && (
-                            <UtensilsCrossed className="h-4 w-4 text-chart-1" />
-                          )}
-                          {activity.type === "cleaning" && (
-                            <SprayCanIcon className="h-4 w-4 text-chart-2" />
-                          )}
-                          {activity.type === "epi" && (
-                            <HardHat className="h-4 w-4 text-chart-3" />
-                          )}
-                          {activity.type === "nfse" && (
-                            <FileText className="h-4 w-4 text-chart-4" />
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium">{activity.title}</p>
-                          <p className="text-xs text-muted-foreground truncate">
-                            {activity.summary}
-                          </p>
-                        </div>
-                        <div className="flex flex-col items-end gap-1">
-                          {"compliant" in activity && (
-                            <div>
-                              {activity.compliant ? (
-                                <span className="inline-flex items-center gap-1 text-xs text-success">
-                                  <CheckCircle2 className="h-4 w-4" />
-                                  OK
-                                </span>
-                              ) : (
-                                <span className="inline-flex items-center gap-1 text-xs text-destructive">
-                                  <XCircle className="h-4 w-4" />
-                                  Problema
-                                </span>
-                              )}
-                            </div>
-                          )}
-                          {"score" in activity && (
-                            <span
-                              className={`text-xs font-medium ${
-                                activity.score >= 70
-                                  ? "text-success"
-                                  : activity.score >= 40
-                                    ? "text-yellow-500"
-                                    : "text-destructive"
-                              }`}
-                            >
-                              {activity.score}/100
-                            </span>
-                          )}
-                          <span className="text-xs text-muted-foreground">
-                            {new Date(activity.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                          </span>
+              {/* Module Charts Grid */}
+              <div className="grid gap-6 md:grid-cols-2">
+                {/* Plate Audit Chart */}
+                <Card>
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center gap-2">
+                      <UtensilsCrossed className="h-5 w-5 text-orange-500" />
+                      <CardTitle className="text-base">Ingredientes</CardTitle>
+                    </div>
+                    <CardDescription>Presenca por auditoria</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {plateAudits.length === 0 ? (
+                      <div className="flex h-48 items-center justify-center text-muted-foreground">
+                        <div className="text-center">
+                          <UtensilsCrossed className="mx-auto h-10 w-10 opacity-30" />
+                          <p className="mt-2 text-xs">Sem dados</p>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                    ) : (
+                      <div className="h-48">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={plateItemsData} layout="vertical">
+                            <CartesianGrid
+                              strokeDasharray="3 3"
+                              stroke="hsl(var(--border))"
+                            />
+                            <XAxis
+                              type="number"
+                              tick={{
+                                fill: "hsl(var(--muted-foreground))",
+                                fontSize: 10,
+                              }}
+                            />
+                            <YAxis
+                              dataKey="name"
+                              type="category"
+                              tick={{
+                                fill: "hsl(var(--muted-foreground))",
+                                fontSize: 10,
+                              }}
+                              width={45}
+                            />
+                            <Tooltip
+                              contentStyle={{
+                                backgroundColor: "hsl(var(--card))",
+                                border: "1px solid hsl(var(--border))",
+                                borderRadius: "8px",
+                                fontSize: "12px",
+                              }}
+                            />
+                            <Legend wrapperStyle={{ fontSize: "10px" }} />
+                            <Bar
+                              dataKey="Presente"
+                              fill="#22c55e"
+                              stackId="a"
+                              radius={[0, 4, 4, 0]}
+                            />
+                            <Bar
+                              dataKey="Ausente"
+                              fill="#ef4444"
+                              stackId="a"
+                              radius={[0, 4, 4, 0]}
+                            />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Cleaning Score Distribution */}
+                <Card>
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center gap-2">
+                      <SprayCanIcon className="h-5 w-5 text-blue-500" />
+                      <CardTitle className="text-base">Limpeza</CardTitle>
+                    </div>
+                    <CardDescription>Distribuicao de scores</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {cleaningAudits.length === 0 ? (
+                      <div className="flex h-48 items-center justify-center text-muted-foreground">
+                        <div className="text-center">
+                          <SprayCanIcon className="mx-auto h-10 w-10 opacity-30" />
+                          <p className="mt-2 text-xs">Sem dados</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="h-48">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={scoreRanges}>
+                            <CartesianGrid
+                              strokeDasharray="3 3"
+                              stroke="hsl(var(--border))"
+                            />
+                            <XAxis
+                              dataKey="range"
+                              tick={{
+                                fill: "hsl(var(--muted-foreground))",
+                                fontSize: 10,
+                              }}
+                            />
+                            <YAxis
+                              tick={{
+                                fill: "hsl(var(--muted-foreground))",
+                                fontSize: 10,
+                              }}
+                            />
+                            <Tooltip
+                              contentStyle={{
+                                backgroundColor: "hsl(var(--card))",
+                                border: "1px solid hsl(var(--border))",
+                                borderRadius: "8px",
+                                fontSize: "12px",
+                              }}
+                            />
+                            <Bar dataKey="quantidade" radius={[4, 4, 0, 0]}>
+                              {scoreRanges.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={entry.fill} />
+                              ))}
+                            </Bar>
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* EPI Compliance */}
+                <Card>
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center gap-2">
+                      <HardHat className="h-5 w-5 text-amber-500" />
+                      <CardTitle className="text-base">EPI</CardTitle>
+                    </div>
+                    <CardDescription>Conformidade por item</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {epiChecks.length === 0 ? (
+                      <div className="flex h-48 items-center justify-center text-muted-foreground">
+                        <div className="text-center">
+                          <HardHat className="mx-auto h-10 w-10 opacity-30" />
+                          <p className="mt-2 text-xs">Sem dados</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="h-48">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={epiEquipmentData} layout="vertical">
+                            <CartesianGrid
+                              strokeDasharray="3 3"
+                              stroke="hsl(var(--border))"
+                            />
+                            <XAxis
+                              type="number"
+                              tick={{
+                                fill: "hsl(var(--muted-foreground))",
+                                fontSize: 10,
+                              }}
+                            />
+                            <YAxis
+                              dataKey="name"
+                              type="category"
+                              tick={{
+                                fill: "hsl(var(--muted-foreground))",
+                                fontSize: 10,
+                              }}
+                              width={50}
+                            />
+                            <Tooltip
+                              contentStyle={{
+                                backgroundColor: "hsl(var(--card))",
+                                border: "1px solid hsl(var(--border))",
+                                borderRadius: "8px",
+                                fontSize: "12px",
+                              }}
+                            />
+                            <Legend wrapperStyle={{ fontSize: "10px" }} />
+                            <Bar
+                              dataKey="Conforme"
+                              fill="#22c55e"
+                              stackId="a"
+                              radius={[0, 4, 4, 0]}
+                            />
+                            <Bar
+                              dataKey="Faltando"
+                              fill="#ef4444"
+                              stackId="a"
+                              radius={[0, 4, 4, 0]}
+                            />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* NFS-e Summary */}
+                <Card>
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center gap-2">
+                      <FileText className="h-5 w-5 text-purple-500" />
+                      <CardTitle className="text-base">NFS-e</CardTitle>
+                    </div>
+                    <CardDescription>Resumo financeiro</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {nfseResults.length === 0 ? (
+                      <div className="flex h-48 items-center justify-center text-muted-foreground">
+                        <div className="text-center">
+                          <FileText className="mx-auto h-10 w-10 opacity-30" />
+                          <p className="mt-2 text-xs">Sem dados</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="h-48 flex flex-col justify-center gap-3">
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="rounded-lg bg-purple-500/10 p-3 text-center">
+                            <p className="text-[10px] text-muted-foreground">
+                              Notas
+                            </p>
+                            <p className="text-xl font-bold text-purple-500">
+                              {nfseResults.length}
+                            </p>
+                          </div>
+                          <div className="rounded-lg bg-blue-500/10 p-3 text-center">
+                            <p className="text-[10px] text-muted-foreground">
+                              Prestadores
+                            </p>
+                            <p className="text-xl font-bold text-blue-500">
+                              {
+                                new Set(nfseResults.map((r) => r.provider_name))
+                                  .size
+                              }
+                            </p>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="rounded-lg bg-green-500/10 p-3 text-center">
+                            <p className="text-[10px] text-muted-foreground">
+                              Total
+                            </p>
+                            <p className="text-sm font-bold text-green-500">
+                              {formatCurrency(totalNfseValue)}
+                            </p>
+                          </div>
+                          <div className="rounded-lg bg-red-500/10 p-3 text-center">
+                            <p className="text-[10px] text-muted-foreground">
+                              ISS
+                            </p>
+                            <p className="text-sm font-bold text-red-500">
+                              {formatCurrency(totalTaxValue)}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+
+            {/* Right Column: Alerts + Timeline */}
+            <div className="space-y-6">
+              <AlertPanel />
+              <TimelinePanel />
+            </div>
+          </div>
+
+          {/* Quick Actions */}
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {modules.map((module) => (
+              <Link key={module.href} href={module.href}>
+                <Card className="group h-full cursor-pointer transition-all hover:shadow-lg hover:border-primary/50">
+                  <CardContent className="flex items-center gap-4 p-4">
+                    <div
+                      className={`rounded-lg p-3 ${module.bgColor} transition-transform group-hover:scale-110`}
+                    >
+                      <module.icon className={`h-6 w-6 ${module.color}`} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-medium text-sm truncate">
+                        {module.title}
+                      </h3>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {module.description}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-muted-foreground">
+                        {module.count}
+                      </span>
+                      <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
           </div>
         </div>
       </main>
