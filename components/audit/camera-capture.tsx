@@ -24,20 +24,42 @@ export function CameraCapture({
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [isStreaming, setIsStreaming] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
   const startCamera = React.useCallback(async () => {
     try {
       setError(null);
+      setIsLoading(true);
+      
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment", width: 1280, height: 720 },
+        video: { 
+          facingMode: { ideal: "environment" }, 
+          width: { ideal: 1280 }, 
+          height: { ideal: 720 } 
+        },
       });
+      
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        setIsStreaming(true);
+        
+        videoRef.current.onloadedmetadata = () => {
+          if (videoRef.current) {
+            videoRef.current.play()
+              .then(() => {
+                setIsStreaming(true);
+                setIsLoading(false);
+              })
+              .catch(() => {
+                setError("Erro ao iniciar o video. Tente novamente.");
+                setIsLoading(false);
+              });
+          }
+        };
       }
     } catch {
       setError("Nao foi possivel acessar a camera. Permita o acesso a camera ou carregue uma imagem.");
+      setIsLoading(false);
     }
   }, []);
 
@@ -119,24 +141,38 @@ export function CameraCapture({
               </div>
             )}
           </div>
-        ) : isStreaming ? (
-          <div className="relative aspect-video">
+        ) : (isStreaming || isLoading) ? (
+          <div className="relative aspect-video bg-black">
             <video
               ref={videoRef}
               autoPlay
               playsInline
               muted
-              className="h-full w-full object-cover"
+              className={cn(
+                "h-full w-full object-cover",
+                isLoading && "opacity-0"
+              )}
             />
+            {/* Loading Overlay */}
+            {isLoading && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="flex flex-col items-center gap-3">
+                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                  <span className="text-sm font-medium text-white">Iniciando camera...</span>
+                </div>
+              </div>
+            )}
             {/* Frame Guide Overlay */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div
-                className={cn(
-                  "border-2 border-dashed border-primary/60",
-                  frameGuideStyles[frameGuide]
-                )}
-              />
-            </div>
+            {isStreaming && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div
+                  className={cn(
+                    "border-2 border-dashed border-primary/60",
+                    frameGuideStyles[frameGuide]
+                  )}
+                />
+              </div>
+            )}
           </div>
         ) : (
           <div className="flex aspect-video flex-col items-center justify-center gap-4 p-8">
@@ -171,13 +207,13 @@ export function CameraCapture({
             <RotateCcw className="mr-2 h-4 w-4" />
             Refazer
           </Button>
-        ) : isStreaming ? (
+        ) : (isStreaming || isLoading) ? (
           <>
-            <Button onClick={capturePhoto} className="flex-1">
+            <Button onClick={capturePhoto} className="flex-1" disabled={isLoading}>
               <Camera className="mr-2 h-4 w-4" />
               Capturar
             </Button>
-            <Button onClick={stopCamera} variant="outline">
+            <Button onClick={stopCamera} variant="outline" disabled={isLoading}>
               <X className="h-4 w-4" />
             </Button>
           </>
