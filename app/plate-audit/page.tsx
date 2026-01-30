@@ -4,8 +4,7 @@ import * as React from "react";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { Header } from "@/components/dashboard/header";
 import { CameraCapture } from "@/components/audit/camera-capture";
-import { ComplianceBadge } from "@/components/audit/compliance-badge";
-import { ResultBadge } from "@/components/audit/result-badge";
+import { Badge } from "@/components/ui/badge";
 import { HistoryCard } from "@/components/audit/history-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,6 +12,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAppStore } from "@/lib/store";
 import { toast } from "sonner";
 import type { PlateAuditResult } from "@/lib/types";
+import { ComplianceBadge } from "@/components/audit/compliance-badge"; // Import ComplianceBadge
+import { ResultBadge } from "@/components/audit/result-badge"; // Import ResultBadge
 
 export default function PlateAuditPage() {
   const [capturedImage, setCapturedImage] = React.useState<string | null>(null);
@@ -58,9 +59,9 @@ export default function PlateAuditPage() {
       addPlateAudit(result);
 
       toast.success(
-        result.compliant
-          ? "Prato em conformidade!"
-          : "Prato nao conforme. Verifique itens faltando."
+        result.wellPrepared
+          ? "Prato bem preparado!"
+          : "Prato precisa de atencao."
       );
     } catch {
       toast.error("Falha ao analisar prato. Tente novamente.");
@@ -109,18 +110,48 @@ export default function PlateAuditPage() {
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-base">Resultado da Analise</CardTitle>
-                      <ComplianceBadge compliant={currentResult.compliant} />
+                      <Badge variant={currentResult.wellPrepared ? "default" : "destructive"}>
+                        {currentResult.wellPrepared ? "Bem Preparado" : "Precisa Atencao"}
+                      </Badge>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="grid grid-cols-3 gap-3">
-                      <ResultBadge value={currentResult.bread} label="Pao" />
-                      <ResultBadge value={currentResult.meat} label="Carne" />
-                      <ResultBadge value={currentResult.cheese} label="Queijo" />
+                    {/* Well Prepared Status */}
+                    <div className={`rounded-lg p-4 ${currentResult.wellPrepared ? 'bg-green-500/10 border border-green-500/20' : 'bg-red-500/10 border border-red-500/20'}`}>
+                      <p className={`text-sm font-semibold ${currentResult.wellPrepared ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                        {currentResult.wellPrepared ? 'Prato Bem Preparado' : 'Prato Precisa de Atencao'}
+                      </p>
+                      {currentResult.preparationNotes && (
+                        <p className="mt-2 text-sm text-muted-foreground">{currentResult.preparationNotes}</p>
+                      )}
                     </div>
+
+                    {/* Detected Foods */}
+                    {currentResult.detectedFoods && currentResult.detectedFoods.length > 0 && (
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium text-muted-foreground">
+                          Alimentos Identificados ({currentResult.detectedFoods.length})
+                        </p>
+                        <div className="grid gap-2 max-h-64 overflow-y-auto">
+                          {currentResult.detectedFoods.map((food, index) => (
+                            <div
+                              key={index}
+                              className="rounded-lg p-3 border bg-muted/50"
+                            >
+                              <span className="text-sm font-medium">{food.name}</span>
+                              {food.observation && (
+                                <p className="mt-1 text-xs text-muted-foreground">{food.observation}</p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Notes */}
                     <div className="rounded-lg bg-muted p-4">
                       <p className="text-sm font-medium text-muted-foreground">
-                        Observacoes
+                        Resumo da Analise
                       </p>
                       <p className="mt-1 text-sm">{currentResult.notes}</p>
                     </div>
@@ -158,7 +189,8 @@ export default function PlateAuditPage() {
                         title="Auditoria de Prato"
                         timestamp={audit.timestamp}
                         imageData={audit.imageData}
-                        compliant={audit.compliant}
+                        detectedFoods={audit.detectedFoods}
+                        wellPrepared={audit.wellPrepared}
                         notes={audit.notes}
                       />
                     ))}
