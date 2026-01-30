@@ -1,3 +1,5 @@
+
+
 # Kitchen Monitor — Monitoramento Operacional para Food Service
 
 ## A dor observada no mercado
@@ -34,13 +36,18 @@ O escopo do MVP contempla:
 - geração de indicadores operacionais
 - sistema básico de alertas
 
-O objetivo do MVP é validar o conceito, demonstrando viabilidade técnica e utilidade prática, sem necessidade de infraestrutura complexa.
+Todas as funcionalidades do MVP **já estão implementadas e operacionais**, utilizando modelos de IA reais para análise de imagens e interpretação de documentos.
 
 O protótipo está disponível em:
 
 **https://trustedkmonitor.xyz**
 
 A aplicação pode ser utilizada tanto em **desktop quanto em dispositivos móveis**, permitindo testes diretamente no ambiente operacional.
+
+Acesso de demonstração:
+
+- **Usuário:** usuario@kitchenmonitor.com  
+- **Senha:** 123456
 
 ---
 
@@ -64,11 +71,11 @@ Não se trata de substituir pessoas, mas de oferecer uma camada adicional de con
 
 ## Como a solução resolve essa dor
 
-O Kitchen Monitor utiliza análise automática de imagens para interpretar situações comuns da operação, como montagem de pratos e estado de limpeza.
+O Kitchen Monitor utiliza análise automática de imagens baseada em IA para interpretar situações comuns da operação, como montagem de pratos, estado de limpeza e uso de EPI.
 
-Em vez de depender apenas de checklists manuais, o sistema gera registros estruturados a partir de evidências visuais. Isso cria histórico auditável e permite acompanhamento por indicadores.
+Em vez de depender apenas de checklists manuais, o sistema gera registros estruturados a partir de evidências visuais reais analisadas automaticamente. Isso cria histórico auditável e permite acompanhamento por indicadores.
 
-No caso das NFS-e, a solução interpreta o conteúdo do XML independentemente do layout municipal, convertendo os dados em um formato padronizado. Isso reduz a necessidade de integrações específicas.
+No caso das NFS-e, a solução interpreta semanticamente o conteúdo do XML independentemente do layout municipal, convertendo os dados em um formato padronizado. Esse processo já funciona no MVP e reduz a necessidade de integrações específicas.
 
 Com os dados coletados, o sistema calcula métricas de conformidade e gera alertas quando padrões mínimos não são atendidos.
 
@@ -76,20 +83,20 @@ Com os dados coletados, o sistema calcula métricas de conformidade e gera alert
 
 ## Descrição do funcionamento da solução
 
-O funcionamento do sistema é baseado em captura assistida de imagens e leitura de arquivos.
+O funcionamento do sistema é baseado em captura assistida de imagens e leitura de arquivos, com análise automática por IA.
 
 ### Fluxo operacional
 
 1. O operador captura uma imagem pelo sistema
-2. A imagem é analisada automaticamente
-3. O resultado é convertido em dados estruturados
+2. A imagem é enviada para o motor de IA
+3. A IA retorna uma auditoria estruturada
 4. O sistema atualiza indicadores internos
 5. Alertas são gerados quando necessário
 
 ### Fluxo fiscal
 
 1. O usuário faz upload de um XML de NFS-e
-2. O sistema interpreta o documento
+2. A IA interpreta o documento
 3. Os dados são padronizados em JSON
 4. O resultado é exibido no painel
 
@@ -104,7 +111,7 @@ O painel central consolida as análises realizadas e apresenta:
 - alertas recentes
 - score geral da operação
 
-Essas informações permitem uma visão resumida da saúde operacional da cozinha.
+Essas informações são atualizadas em tempo real a partir das análises feitas no sistema.
 
 ---
 
@@ -119,15 +126,14 @@ Isso viabiliza:
 - geração automática de indicadores
 - alertas em tempo real
 
-Essa etapa transformaria o sistema em um mecanismo de observação operacional permanente, reduzindo ainda mais a dependência de inspeção manual.
+Essa etapa transformaria o sistema em um mecanismo de observação operacional permanente.
 
 ---
 
 ## Conclusão
 
-O Kitchen Monitor demonstra a viabilidade de monitoramento operacional automatizado em ambientes de food service.
+O Kitchen Monitor demonstra, de forma prática, a viabilidade de monitoramento operacional automatizado em ambientes de food service.
 
-O MVP valida uma abordagem onde imagens e documentos deixam de ser registros passivos e passam a alimentar indicadores úteis para gestão.
+O MVP já executa análises reais com IA e valida uma abordagem onde imagens e documentos deixam de ser registros passivos e passam a alimentar indicadores úteis para gestão.
 
 A proposta abre caminho para operações mais rastreáveis, padronizadas e orientadas por dados, sem aumentar a complexidade da rotina da equipe.
-
