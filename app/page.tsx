@@ -9,6 +9,7 @@ import { AlertPanel } from "@/components/dashboard/alert-panel";
 import { TimelinePanel } from "@/components/dashboard/timeline-panel";
 import { ScoreTrendChart } from "@/components/dashboard/score-trend-chart";
 import { CriticalBanner } from "@/components/dashboard/critical-banner";
+import { FloatingChat } from "@/components/dashboard/floating-chat";
 import {
   Card,
   CardContent,
@@ -30,6 +31,7 @@ import {
   TrendingUp,
   AlertTriangle,
   PieChart,
+  MessageCircle,
 } from "lucide-react";
 import {
   BarChart,
@@ -129,6 +131,9 @@ const EPITooltip = ({ active, payload, label }: TooltipProps<ValueType, NameType
 
 export default function DashboardPage() {
   const [mounted, setMounted] = React.useState(false);
+  const [chatOpen, setChatOpen] = React.useState(false);
+  const [chatCardTitle, setChatCardTitle] = React.useState("");
+  const [chatContext, setChatContext] = React.useState("");
   const {
     plateAudits,
     cleaningAudits,
@@ -228,6 +233,89 @@ export default function DashboardPage() {
       style: "currency",
       currency: "BRL",
     }).format(value);
+  };
+
+  // Build context for AI chat based on card type
+  const buildContext = (cardType: string): string => {
+    switch (cardType) {
+      case "pratos":
+        return `DADOS DE AUDITORIA DE PRATOS:
+- Total de auditorias: ${plateAudits.length}
+- Bem preparados: ${plateWellPrepared}
+- Precisam atencao: ${plateAudits.length - plateWellPrepared}
+- Taxa de qualidade: ${plateAudits.length > 0 ? Math.round((plateWellPrepared / plateAudits.length) * 100) : 0}%
+Ultimas auditorias: ${JSON.stringify(plateAudits.slice(0, 5).map(a => ({ 
+  data: a.timestamp, 
+  bemPreparado: a.wellPrepared, 
+  alimentos: a.detectedFoods?.map(f => f.name).join(", "),
+  notas: a.preparationNotes 
+})))}`;
+      case "limpeza":
+        return `DADOS DE AUDITORIA DE LIMPEZA:
+- Total de auditorias: ${cleaningAudits.length}
+- Media de score: ${avgCleaningScore}/100
+- Criticos (< 40): ${cleaningAudits.filter(a => a.score < 40).length}
+- Atencao (40-70): ${cleaningAudits.filter(a => a.score >= 40 && a.score < 70).length}
+- Bom (> 70): ${cleaningAudits.filter(a => a.score >= 70).length}
+Ultimas auditorias: ${JSON.stringify(cleaningAudits.slice(0, 5).map(a => ({
+  data: a.timestamp,
+  score: a.score,
+  bancadaLimpa: a.counter_clean,
+  lixoCheio: a.trash_full,
+  chaoSujo: a.floor_dirty,
+  notas: a.notes
+})))}`;
+      case "epi":
+        return `DADOS DE VERIFICACAO DE EPI:
+- Total de verificacoes: ${epiChecks.length}
+- Conformes: ${epiCompliant}
+- Nao conformes: ${epiChecks.length - epiCompliant}
+- Taxa de conformidade: ${epiChecks.length > 0 ? Math.round((epiCompliant / epiChecks.length) * 100) : 0}%
+- Touca conforme: ${epiChecks.filter(c => c.hairnet === true).length}/${epiChecks.length}
+- Luvas conforme: ${epiChecks.filter(c => c.gloves === true).length}/${epiChecks.length}
+- Avental/Uniforme conforme: ${epiChecks.filter(c => c.apron === true).length}/${epiChecks.length}
+Ultimas verificacoes: ${JSON.stringify(epiChecks.slice(0, 5).map(c => ({
+  data: c.timestamp,
+  touca: c.hairnet,
+  luvas: c.gloves,
+  avental: c.apron,
+  conforme: c.compliant,
+  notas: c.notes
+})))}`;
+      case "nfse":
+        return `DADOS DE NFS-e:
+- Total de notas: ${nfseResults.length}
+- Valor total: R$ ${totalNfseValue.toFixed(2)}
+- Total ISS: R$ ${totalTaxValue.toFixed(2)}
+- Prestadores unicos: ${new Set(nfseResults.map(r => r.provider_name)).size}
+Ultimas notas: ${JSON.stringify(nfseResults.slice(0, 5).map(r => ({
+  numero: r.invoice_number,
+  data: r.issue_date,
+  prestador: r.provider_name,
+  servico: r.service_description,
+  valor: r.total_value,
+  iss: r.tax_value
+})))}`;
+      case "geral":
+      default:
+        return `RESUMO GERAL DO DASHBOARD:
+- Kitchen Score: ${kitchenScore}
+- Total de auditorias: ${totalAnalyses}
+- Taxa de conformidade geral: ${complianceRate}%
+- Media de limpeza: ${avgCleaningScore}/100
+- Alertas ativos: ${alerts.filter(a => !a.read).length}
+- Alertas criticos: ${alerts.filter(a => a.severity === "critical" && !a.read).length}
+- Pratos auditados: ${plateAudits.length} (${plateWellPrepared} bem preparados)
+- Auditorias de limpeza: ${cleaningAudits.length} (media ${avgCleaningScore})
+- Verificacoes EPI: ${epiChecks.length} (${epiCompliant} conformes)
+- NFS-e processadas: ${nfseResults.length} (total R$ ${totalNfseValue.toFixed(2)})`;
+    }
+  };
+
+  const openChat = (cardType: string, title: string) => {
+    setChatContext(buildContext(cardType));
+    setChatCardTitle(title);
+    setChatOpen(true);
   };
 
   // Compliance Pie Chart data
@@ -410,9 +498,20 @@ export default function DashboardPage() {
                 {/* Plate Audit Chart */}
                 <Card>
                   <CardHeader className="pb-2">
-                    <div className="flex items-center gap-2">
-                      <UtensilsCrossed className="h-5 w-5 text-orange-500" />
-                      <CardTitle className="text-base">Qualidade dos Pratos</CardTitle>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <UtensilsCrossed className="h-5 w-5 text-orange-500" />
+                        <CardTitle className="text-base">Qualidade dos Pratos</CardTitle>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 bg-transparent"
+                        onClick={() => openChat("pratos", "Qualidade dos Pratos")}
+                      >
+                        <MessageCircle className="h-4 w-4 text-muted-foreground" />
+                        <span className="sr-only">Perguntar sobre pratos</span>
+                      </Button>
                     </div>
                     <CardDescription>Avaliacao de preparo</CardDescription>
                   </CardHeader>
@@ -457,9 +556,20 @@ export default function DashboardPage() {
                 {/* Cleaning Score Distribution */}
                 <Card>
                   <CardHeader className="pb-2">
-                    <div className="flex items-center gap-2">
-                      <SprayCanIcon className="h-5 w-5 text-blue-500" />
-                      <CardTitle className="text-base">Limpeza</CardTitle>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <SprayCanIcon className="h-5 w-5 text-blue-500" />
+                        <CardTitle className="text-base">Limpeza</CardTitle>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 bg-transparent"
+                        onClick={() => openChat("limpeza", "Auditoria de Limpeza")}
+                      >
+                        <MessageCircle className="h-4 w-4 text-muted-foreground" />
+                        <span className="sr-only">Perguntar sobre limpeza</span>
+                      </Button>
                     </div>
                     <CardDescription>Distribuicao de scores</CardDescription>
                   </CardHeader>
@@ -508,9 +618,20 @@ export default function DashboardPage() {
                 {/* EPI Compliance */}
                 <Card>
                   <CardHeader className="pb-2">
-                    <div className="flex items-center gap-2">
-                      <HardHat className="h-5 w-5 text-amber-500" />
-                      <CardTitle className="text-base">EPI</CardTitle>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <HardHat className="h-5 w-5 text-amber-500" />
+                        <CardTitle className="text-base">EPI</CardTitle>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 bg-transparent"
+                        onClick={() => openChat("epi", "Verificacao de EPI")}
+                      >
+                        <MessageCircle className="h-4 w-4 text-muted-foreground" />
+                        <span className="sr-only">Perguntar sobre EPI</span>
+                      </Button>
                     </div>
                     <CardDescription>Conformidade por item</CardDescription>
                   </CardHeader>
@@ -570,9 +691,20 @@ export default function DashboardPage() {
                 {/* NFS-e Summary */}
                 <Card>
                   <CardHeader className="pb-2">
-                    <div className="flex items-center gap-2">
-                      <FileText className="h-5 w-5 text-purple-500" />
-                      <CardTitle className="text-base">NFS-e</CardTitle>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <FileText className="h-5 w-5 text-purple-500" />
+                        <CardTitle className="text-base">NFS-e</CardTitle>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 bg-transparent"
+                        onClick={() => openChat("nfse", "Notas Fiscais (NFS-e)")}
+                      >
+                        <MessageCircle className="h-4 w-4 text-muted-foreground" />
+                        <span className="sr-only">Perguntar sobre NFS-e</span>
+                      </Button>
                     </div>
                     <CardDescription>Resumo financeiro</CardDescription>
                   </CardHeader>
@@ -670,6 +802,26 @@ export default function DashboardPage() {
             ))}
           </div>
         </div>
+
+        {/* General chat FAB */}
+        {!chatOpen && (
+          <button
+            type="button"
+            onClick={() => openChat("geral", "Resumo Geral")}
+            className="fixed bottom-4 right-4 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-110"
+          >
+            <MessageCircle className="h-5 w-5" />
+            <span className="sr-only">Abrir assistente de dados</span>
+          </button>
+        )}
+
+        {/* Floating Chat */}
+        <FloatingChat
+          context={chatContext}
+          cardTitle={chatCardTitle}
+          isOpen={chatOpen}
+          onClose={() => setChatOpen(false)}
+        />
       </main>
     </div>
   );
